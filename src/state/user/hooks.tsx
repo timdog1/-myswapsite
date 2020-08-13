@@ -19,7 +19,7 @@ import {
   updateUserExpertMode,
   updateUserSlippageTolerance
 } from './actions'
-import { useDefaultTokenList } from '../lists/hooks'
+import { useDefaultTokenList } from '../../hooks/TokenList'
 import { isDefaultToken } from '../../utils'
 
 function serializeToken(token: Token): SerializedToken {

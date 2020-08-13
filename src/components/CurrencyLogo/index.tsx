@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import { ChainId, Currency, Token, ETHER, DXD } from 'dxswap-sdk'
 
 import EthereumLogo from '../../assets/images/ethereum-logo.png'
-import { WrappedTokenInfo } from '../../state/lists/hooks'
+import { WrappedTokenInfo } from '../../hooks/TokenList'
 import uriToHttp from '../../utils/uriToHttp'
 import { defaultTokens } from '../../constants'
 
