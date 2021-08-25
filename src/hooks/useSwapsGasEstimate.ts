@@ -11,10 +11,9 @@ import { tryParseAmount, useSwapState } from '../state/swap/hooks'
 import { useUserPreferredGasPrice } from '../state/user/hooks'
 import { useCurrencyBalance } from '../state/wallet/hooks'
 import { calculateGasMargin } from '../utils'
-import isZero from '../utils/isZero'
 import { useCurrency } from './Tokens'
 import useENS from './useENS'
-import { useSwapsCallArguments } from './useSwapCallback'
+import { useSwapsTransactions } from './useSwapCallback'
 
 export function useSwapsGasEstimations(
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE,
@@ -22,7 +21,7 @@ export function useSwapsGasEstimations(
   trades?: (Trade | undefined)[]
 ): { loading: boolean; estimations: (BigNumber | null)[][] } {
   const { account, library, chainId } = useActiveWeb3React()
-  const platformSwapCalls = useSwapsCallArguments(trades, allowedSlippage, recipientAddressOrName)
+  const platformTransactions = useSwapsTransactions(trades, allowedSlippage, recipientAddressOrName)
   const mainnetGasPrices = useMainnetGasPrices()
   const [preferredGasPrice] = useUserPreferredGasPrice()
 
@@ -86,29 +85,30 @@ export function useSwapsGasEstimations(
   const recipient = recipientAddress || account
 
   const updateEstimations = useCallback(async () => {
-    if (!routerAllowances || !trades || !typedIndependentCurrencyAmount || routerAllowances.length !== trades.length)
+    if (
+      !routerAllowances ||
+      !trades ||
+      !typedIndependentCurrencyAmount ||
+      routerAllowances.length !== trades.length ||
+      !library
+    )
       return
     setLoading(true)
     const estimatedCalls = []
-    for (let i = 0; i < platformSwapCalls.length; i++) {
-      const platformCalls = platformSwapCalls[i]
+    for (let i = 0; i < platformTransactions.length; i++) {
+      const transactions = platformTransactions[i]
       let specificCalls = []
       // if the allowance to the router for the traded token is less than the
       // types amount, avoid estimating gas since the tx would fail, printing
       // an horrible error log in the console, continuously
       if (routerAllowances[i].lessThan(typedIndependentCurrencyAmount)) {
-        specificCalls = platformCalls.map(() => null)
+        specificCalls = transactions.map(() => null)
       } else {
-        for (const call of platformCalls) {
-          const {
-            parameters: { methodName, args, value },
-            contract
-          } = call
-          const options = !value || isZero(value) ? {} : { value }
-
+        for (const transaction of transactions) {
           let estimatedCall = null
+          const transactionRequest = { ...transaction, type: undefined }
           try {
-            estimatedCall = calculateGasMargin(await contract.estimateGas[methodName](...args, { ...options }))
+            estimatedCall = calculateGasMargin(await library.estimateGas(transactionRequest))
           } catch (error) {
             console.error(error)
             // silent fail
@@ -121,7 +121,7 @@ export function useSwapsGasEstimations(
     }
     setEstimations(estimatedCalls)
     setLoading(false)
-  }, [platformSwapCalls, routerAllowances, trades, typedIndependentCurrencyAmount])
+  }, [library, platformTransactions, routerAllowances, trades, typedIndependentCurrencyAmount])
 
   useEffect(() => {
     if (!trades || trades.length === 0 || !library || !chainId || !recipient || !account || !calculateGasFees) {

@@ -1,6 +1,6 @@
-import { Currency, CurrencyAmount, Pair, RoutablePlatform, Token, Trade } from '@swapr/sdk'
+import { Currency, CurrencyAmount, Pair, RoutablePlatform, Token, Trade, UniswapV2Trade, TradeType } from '@swapr/sdk'
 import flatMap from 'lodash.flatmap'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { BASES_TO_CHECK_TRADES_AGAINST } from '../constants'
 import { PairState, usePairs } from '../data/Reserves'
@@ -72,7 +72,7 @@ function useAllCommonPairs(
 /**
  * Returns the best trade for the exact amount of tokens in to the given token out
  */
-export function useTradeExactIn(
+export function useBestTradeExactInUniswapV2Platform(
   currencyAmountIn?: CurrencyAmount,
   currencyOut?: Currency,
   platform: RoutablePlatform = RoutablePlatform.SWAPR
@@ -80,24 +80,31 @@ export function useTradeExactIn(
   const { chainId } = useActiveWeb3React()
   const allowedPairs = useAllCommonPairs(currencyAmountIn?.currency, currencyOut, platform)
   const multihop = useIsMultihop()
+  const [bestTrade, setBestTrade] = useState<Trade | undefined>()
 
-  return useMemo(() => {
-    if (currencyAmountIn && currencyOut && allowedPairs.length > 0 && chainId && platform.supportsChain(chainId)) {
-      return (
-        Trade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, {
-          maxHops: multihop ? 3 : 1,
-          maxNumResults: 1
-        })[0] ?? null
-      )
+  useEffect(() => {
+    const fetchBestTrade = async () => {
+      if (currencyAmountIn && currencyOut && allowedPairs.length > 0 && chainId && platform.supportsChain(chainId)) {
+        setBestTrade(
+          (
+            await UniswapV2Trade.bestTradeExactIn(allowedPairs, currencyAmountIn, currencyOut, {
+              maxHops: multihop ? 3 : 1,
+              maxNumResults: 1
+            })
+          )[0]
+        )
+      }
     }
-    return undefined
+    fetchBestTrade()
   }, [currencyAmountIn, currencyOut, allowedPairs, chainId, platform, multihop])
+
+  return bestTrade
 }
 
 /**
  * Returns the best trade for the token in to the exact amount of token out
  */
-export function useTradeExactOut(
+export function useBestTradeExactOutUniswapV2Platform(
   currencyIn?: Currency,
   currencyAmountOut?: CurrencyAmount,
   platform: RoutablePlatform = RoutablePlatform.SWAPR
@@ -105,18 +112,25 @@ export function useTradeExactOut(
   const { chainId } = useActiveWeb3React()
   const allowedPairs = useAllCommonPairs(currencyIn, currencyAmountOut?.currency, platform)
   const multihop = useIsMultihop()
+  const [bestTrade, setBestTrade] = useState<Trade | undefined>()
 
-  return useMemo(() => {
-    if (currencyIn && currencyAmountOut && allowedPairs.length > 0 && chainId && platform.supportsChain(chainId)) {
-      return (
-        Trade.bestTradeExactOut(allowedPairs, currencyIn, currencyAmountOut, {
-          maxHops: multihop ? 3 : 1,
-          maxNumResults: 1
-        })[0] ?? null
-      )
+  useEffect(() => {
+    const fetchBestTrade = async () => {
+      if (currencyIn && currencyAmountOut && allowedPairs.length > 0 && chainId && platform.supportsChain(chainId)) {
+        setBestTrade(
+          (
+            await UniswapV2Trade.bestTradeExactOut(allowedPairs, currencyIn, currencyAmountOut, {
+              maxHops: multihop ? 3 : 1,
+              maxNumResults: 1
+            })
+          )[0]
+        )
+      }
     }
-    return undefined
+    fetchBestTrade()
   }, [currencyIn, currencyAmountOut, allowedPairs, chainId, platform, multihop])
+
+  return bestTrade
 }
 
 /**
@@ -127,15 +141,31 @@ export function useTradeExactInAllPlatforms(
   currencyAmountIn?: CurrencyAmount,
   currencyOut?: Currency
 ): (Trade | undefined)[] {
-  const bestTrades = [
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.SWAPR),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.UNISWAP),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.SUSHISWAP),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.HONEYSWAP),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.BAOSWAP),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.LEVINSWAP)
-  ]
-  return sortTradesByExecutionPrice(bestTrades).filter(trade => !!trade)
+  const bestSwaprTrade = useBestTradeExactInUniswapV2Platform(currencyAmountIn, currencyOut, RoutablePlatform.SWAPR)
+  const bestUniswapTrade = useBestTradeExactInUniswapV2Platform(currencyAmountIn, currencyOut, RoutablePlatform.UNISWAP)
+  const bestSushiswapTrade = useBestTradeExactInUniswapV2Platform(
+    currencyAmountIn,
+    currencyOut,
+    RoutablePlatform.SUSHISWAP
+  )
+  const bestHoneyswapTrade = useBestTradeExactInUniswapV2Platform(
+    currencyAmountIn,
+    currencyOut,
+    RoutablePlatform.HONEYSWAP
+  )
+  const bestBaoswapTrade = useBestTradeExactInUniswapV2Platform(currencyAmountIn, currencyOut, RoutablePlatform.BAOSWAP)
+  const bestLevinswapTrade = useBestTradeExactInUniswapV2Platform(
+    currencyAmountIn,
+    currencyOut,
+    RoutablePlatform.LEVINSWAP
+  )
+
+  return useMemo(() => {
+    return sortTradesByExecutionPrice(
+      [bestSwaprTrade, bestUniswapTrade, bestSushiswapTrade, bestHoneyswapTrade, bestBaoswapTrade, bestLevinswapTrade],
+      TradeType.EXACT_INPUT
+    ).filter(trade => !!trade)
+  }, [bestBaoswapTrade, bestHoneyswapTrade, bestLevinswapTrade, bestSushiswapTrade, bestSwaprTrade, bestUniswapTrade])
 }
 
 /**
@@ -146,13 +176,37 @@ export function useTradeExactOutAllPlatforms(
   currencyIn?: Currency,
   currencyAmountOut?: CurrencyAmount
 ): (Trade | undefined)[] {
-  const bestTrades = [
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.SWAPR),
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.UNISWAP),
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.SUSHISWAP),
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.HONEYSWAP),
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.BAOSWAP),
-    useTradeExactOut(currencyIn, currencyAmountOut, RoutablePlatform.LEVINSWAP)
-  ]
-  return sortTradesByExecutionPrice(bestTrades).filter(trade => !!trade)
+  const bestSwaprTrade = useBestTradeExactOutUniswapV2Platform(currencyIn, currencyAmountOut, RoutablePlatform.SWAPR)
+  const bestUniswapTrade = useBestTradeExactOutUniswapV2Platform(
+    currencyIn,
+    currencyAmountOut,
+    RoutablePlatform.UNISWAP
+  )
+  const bestSushiswapTrade = useBestTradeExactOutUniswapV2Platform(
+    currencyIn,
+    currencyAmountOut,
+    RoutablePlatform.SUSHISWAP
+  )
+  const bestHoneyswapTrade = useBestTradeExactOutUniswapV2Platform(
+    currencyIn,
+    currencyAmountOut,
+    RoutablePlatform.HONEYSWAP
+  )
+  const bestBaoswapTrade = useBestTradeExactOutUniswapV2Platform(
+    currencyIn,
+    currencyAmountOut,
+    RoutablePlatform.BAOSWAP
+  )
+  const bestLevinswapTrade = useBestTradeExactOutUniswapV2Platform(
+    currencyIn,
+    currencyAmountOut,
+    RoutablePlatform.LEVINSWAP
+  )
+
+  return useMemo(() => {
+    return sortTradesByExecutionPrice(
+      [bestSwaprTrade, bestUniswapTrade, bestSushiswapTrade, bestHoneyswapTrade, bestBaoswapTrade, bestLevinswapTrade],
+      TradeType.EXACT_OUTPUT
+    ).filter(trade => !!trade)
+  }, [bestBaoswapTrade, bestHoneyswapTrade, bestLevinswapTrade, bestSushiswapTrade, bestSwaprTrade, bestUniswapTrade])
 }

@@ -2,7 +2,7 @@ import useENS from '../../hooks/useENS'
 import { parseUnits } from '@ethersproject/units'
 import { Currency, CurrencyAmount, JSBI, RoutablePlatform, Token, TokenAmount, Trade } from '@swapr/sdk'
 import { ParsedQs } from 'qs'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useActiveWeb3React } from '../../hooks'
 import { useCurrency } from '../../hooks/Tokens'
@@ -127,7 +127,11 @@ export function useDerivedSwapInfo(
   const inputCurrency = useCurrency(inputCurrencyId)
   const outputCurrency = useCurrency(outputCurrencyId)
   const recipientLookup = useENS(recipient ?? undefined)
-  const to: string | null = (recipient === null ? account : recipientLookup.address) ?? null
+  const to: string | null = useMemo(() => (recipient === null ? account : recipientLookup.address) ?? null, [
+    account,
+    recipient,
+    recipientLookup.address
+  ])
 
   const relevantTokenBalances = useCurrencyBalances(account ?? undefined, [
     inputCurrency ?? undefined,
@@ -135,7 +139,10 @@ export function useDerivedSwapInfo(
   ])
 
   const isExactIn: boolean = independentField === Field.INPUT
-  const parsedAmount = tryParseAmount(typedValue, (isExactIn ? inputCurrency : outputCurrency) ?? undefined, chainId)
+  const parsedAmount = useMemo(
+    () => tryParseAmount(typedValue, (isExactIn ? inputCurrency : outputCurrency) ?? undefined, chainId),
+    [chainId, inputCurrency, isExactIn, outputCurrency, typedValue]
+  )
 
   const bestTradeExactInAllPlatforms = useTradeExactInAllPlatforms(
     isExactIn ? parsedAmount : undefined,

@@ -10,7 +10,8 @@ import {
   Price,
   Currency,
   _10000,
-  _100
+  _100,
+  TradeType
 } from '@swapr/sdk'
 import { ALLOWED_PRICE_IMPACT_HIGH, ALLOWED_PRICE_IMPACT_LOW, ALLOWED_PRICE_IMPACT_MEDIUM } from '../constants'
 import { Field } from '../state/swap/actions'
@@ -110,8 +111,8 @@ export function formatExecutionPrice(trade?: Trade, inverted?: boolean): string 
       }`
 }
 
-export function sortTradesByExecutionPrice(trades: (Trade | undefined)[]): (Trade | undefined)[] {
-  return trades.sort((a, b) => {
+export function sortTradesByExecutionPrice(trades: (Trade | undefined)[], type: TradeType): (Trade | undefined)[] {
+  return trades.sort((a: Trade | undefined, b: Trade | undefined) => {
     if (a === undefined || a === null) {
       return 1
     }
@@ -120,11 +121,11 @@ export function sortTradesByExecutionPrice(trades: (Trade | undefined)[]): (Trad
     }
 
     if (a.executionPrice.lessThan(b.executionPrice)) {
-      return 1
+      return type === TradeType.EXACT_INPUT ? 1 : -1
     } else if (a.executionPrice.equalTo(b.executionPrice)) {
       return 0
     } else {
-      return -1
+      return type === TradeType.EXACT_INPUT ? -1 : 1
     }
   })
 }
