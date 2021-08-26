@@ -1,10 +1,11 @@
-import { BLOCKED_PRICE_IMPACT_NON_EXPERT } from '../constants'
+import { BIPS_BASE, BLOCKED_PRICE_IMPACT_NON_EXPERT } from '../constants'
 import {
   CurrencyAmount,
   Fraction,
   JSBI,
   Percent,
   TokenAmount,
+  UniswapV2Trade,
   Trade,
   Pair,
   Price,
@@ -15,7 +16,6 @@ import {
 } from '@swapr/sdk'
 import { ALLOWED_PRICE_IMPACT_HIGH, ALLOWED_PRICE_IMPACT_LOW, ALLOWED_PRICE_IMPACT_MEDIUM } from '../constants'
 import { Field } from '../state/swap/actions'
-import { basisPointsToPercent } from './index'
 import Decimal from 'decimal.js-light'
 import { parseUnits } from 'ethers/lib/utils'
 
@@ -25,6 +25,17 @@ const ONE_HUNDRED_PERCENT = new Percent(_10000, _10000)
 export function computeTradePriceBreakdown(
   trade?: Trade
 ): { priceImpactWithoutFee?: Percent; realizedLPFee?: Percent; realizedLPFeeAmount?: CurrencyAmount } {
+  if (!(trade instanceof UniswapV2Trade))
+    return {
+      priceImpactWithoutFee: new Percent('0', BIPS_BASE),
+      realizedLPFee: new Percent('0', BIPS_BASE),
+      realizedLPFeeAmount: trade
+        ? trade.inputAmount instanceof TokenAmount
+          ? new TokenAmount(trade.inputAmount.token, '0')
+          : CurrencyAmount.nativeCurrency('0', trade.chainId)
+        : undefined
+    }
+
   // for each hop in our trade, take away the x*y=k price impact from 0.3% fees
   // e.g. for 3 tokens/2 hops: 1 - ((1 - .03) * (1-.03))
   const realizedLPFee = !trade
@@ -79,14 +90,10 @@ export function calculateProtocolFee(
 }
 
 // computes the minimum amount out and maximum amount in for a trade given a user specified allowed slippage in bips
-export function computeSlippageAdjustedAmounts(
-  trade: Trade | undefined,
-  allowedSlippage: number
-): { [field in Field]?: CurrencyAmount } {
-  const pct = basisPointsToPercent(allowedSlippage)
+export function computeSlippageAdjustedAmounts(trade: Trade | undefined): { [field in Field]?: CurrencyAmount } {
   return {
-    [Field.INPUT]: trade?.maximumAmountIn(pct),
-    [Field.OUTPUT]: trade?.minimumAmountOut(pct)
+    [Field.INPUT]: trade?.maximumAmountIn(),
+    [Field.OUTPUT]: trade?.minimumAmountOut()
   }
 }
 
@@ -111,15 +118,8 @@ export function formatExecutionPrice(trade?: Trade, inverted?: boolean): string 
       }`
 }
 
-export function sortTradesByExecutionPrice(trades: (Trade | undefined)[], type: TradeType): (Trade | undefined)[] {
-  return trades.sort((a: Trade | undefined, b: Trade | undefined) => {
-    if (a === undefined || a === null) {
-      return 1
-    }
-    if (b === undefined || b === null) {
-      return -1
-    }
-
+export function sortTradesByExecutionPrice(trades: Trade[], type: TradeType): Trade[] {
+  return trades.sort((a: Trade, b: Trade) => {
     if (a.executionPrice.lessThan(b.executionPrice)) {
       return type === TradeType.EXACT_INPUT ? 1 : -1
     } else if (a.executionPrice.equalTo(b.executionPrice)) {

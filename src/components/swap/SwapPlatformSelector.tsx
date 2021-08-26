@@ -3,11 +3,8 @@ import { CurrencyAmount, RoutablePlatform, Trade, TradeType } from '@swapr/sdk'
 import { AutoColumn } from '../Column'
 import { TYPE } from '../../theme'
 import CurrencyLogo from '../CurrencyLogo'
-import { Box, Flex } from 'rebass'
 import Radio from '../Radio'
-import QuestionHelper from '../QuestionHelper'
 import WarningHelper from '../WarningHelper'
-import SwapRoute from './SwapRoute'
 import { useSwapsGasEstimations } from '../../hooks/useSwapsGasEstimate'
 import { useUserSlippageTolerance } from '../../state/user/hooks'
 import { useSwapState } from '../../state/swap/hooks'
@@ -19,6 +16,7 @@ import { computeSlippageAdjustedAmounts, computeTradePriceBreakdown } from '../.
 import { Field } from '../../state/swap/actions'
 import Skeleton from 'react-loading-skeleton'
 import useDebounce from '../../hooks/useDebounce'
+import SwapDetails from './SwapDetails'
 
 const TableHeaderText = styled.span`
   font-size: 10px;
@@ -32,7 +30,7 @@ const Spacer = styled.tr`
 `
 
 export interface SwapPlatformSelectorProps {
-  allPlatformTrades: (Trade | undefined)[] | undefined
+  allPlatformTrades: Trade[] | undefined
   selectedTrade?: Trade
   onSelectedPlatformChange: (newPlatform: RoutablePlatform) => void
 }
@@ -68,9 +66,7 @@ export function SwapPlatformSelector({
     recipient,
     allPlatformTrades
   )
-  const { loading: loadingGasFeesUSD, gasFeesUSD } = useGasFeesUSD(
-    estimations.map(estimation => (estimation && estimation.length > 0 ? estimation[0] : null))
-  )
+  const { loading: loadingGasFeesUSD, gasFeesUSD } = useGasFeesUSD(estimations)
   const loadingGasFees = loadingGasFeesUSD || loadingTradesGasEstimates
   const debouncedLoadingGasFees = useDebounce(loadingGasFees, 2000)
 
@@ -113,7 +109,7 @@ export function SwapPlatformSelector({
             const isExactIn = trade.tradeType === TradeType.EXACT_INPUT
             const gasFeeUSD = gasFeesUSD[i]
             const { realizedLPFee } = computeTradePriceBreakdown(trade)
-            const slippageAdjustedAmounts = computeSlippageAdjustedAmounts(trade, allowedSlippage)
+            const slippageAdjustedAmounts = computeSlippageAdjustedAmounts(trade)
             return (
               <tr key={i} style={{ lineHeight: '22px' }}>
                 <td colSpan={4}>
@@ -127,7 +123,7 @@ export function SwapPlatformSelector({
                 </td>
                 <td>
                   <TYPE.main color="text4" fontSize="10px" lineHeight="12px">
-                    {realizedLPFee ? `${realizedLPFee.toFixed(2)}%` : '-'}
+                    {realizedLPFee && realizedLPFee.greaterThan('0') ? `${realizedLPFee.toFixed(2)}%` : '-'}
                   </TYPE.main>
                 </td>
                 {showGasFees && (
@@ -154,23 +150,7 @@ export function SwapPlatformSelector({
           })}
         </tbody>
       </table>
-      {selectedTrade && selectedTrade.route.path.length > 2 && (
-        <Flex mx="2px" width="100%">
-          <Flex>
-            <Box>
-              <TYPE.body fontSize="12px" lineHeight="15px" fontWeight="500" minWidth="auto">
-                Route
-              </TYPE.body>
-            </Box>
-            <Box>
-              <QuestionHelper text="Routing through these tokens resulted in the best price for your trade." />
-            </Box>
-          </Flex>
-          <Box flex="1">
-            <SwapRoute trade={selectedTrade} />
-          </Box>
-        </Flex>
-      )}
+      {selectedTrade && <SwapDetails trade={selectedTrade} />}
     </AutoColumn>
   )
 }

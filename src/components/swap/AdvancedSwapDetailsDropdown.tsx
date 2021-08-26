@@ -73,7 +73,7 @@ const SettingsWrapper = styled(Box)`
 
 interface AdvancedSwapDetailsDropdownProps {
   trade?: Trade
-  allPlatformTrades?: (Trade | undefined)[] | undefined
+  allPlatformTrades?: Trade[] | undefined
   onSelectedPlatformChange: (newPlatform: RoutablePlatform) => void
 }
 

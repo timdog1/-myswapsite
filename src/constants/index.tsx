@@ -10,6 +10,7 @@ import {
   WXDAI,
   Token,
   Currency,
+  UniswapV2RoutablePlatform,
   RoutablePlatform,
   SWPR
 } from '@swapr/sdk'
@@ -20,6 +21,7 @@ import SushiswapLogo from '../assets/svg/sushiswap-logo.svg'
 import HoneyswapLogo from '../assets/svg/honeyswap-logo.svg'
 import BaoswapLogo from '../assets/images/baoswap-logo.png'
 import LevinswapLogo from '../assets/images/levinswap-logo.svg'
+import ZeroXLogo from '../assets/images/0x-logo.png'
 import { providers } from 'ethers'
 
 export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -313,10 +315,11 @@ export const NETWORK_DETAIL: { [chainId: number]: NetworkDetails } = {
 }
 
 export const ROUTABLE_PLATFORM_LOGO: { [routablePaltformName: string]: ReactNode } = {
-  [RoutablePlatform.UNISWAP.name]: <img width={16} height={16} src={UniswapLogo} alt="uniswap" />,
-  [RoutablePlatform.SUSHISWAP.name]: <img width={16} height={16} src={SushiswapLogo} alt="sushiswap" />,
-  [RoutablePlatform.SWAPR.name]: <img width={16} height={16} src={SwaprLogo} alt="swapr" />,
-  [RoutablePlatform.HONEYSWAP.name]: <img width={16} height={16} src={HoneyswapLogo} alt="honeyswap" />,
-  [RoutablePlatform.BAOSWAP.name]: <img width={16} height={16} src={BaoswapLogo} alt="baoswap" />,
-  [RoutablePlatform.LEVINSWAP.name]: <img width={16} height={16} src={LevinswapLogo} alt="levinswap" />
+  [UniswapV2RoutablePlatform.UNISWAP.name]: <img width={16} height={16} src={UniswapLogo} alt="uniswap" />,
+  [UniswapV2RoutablePlatform.SUSHISWAP.name]: <img width={16} height={16} src={SushiswapLogo} alt="sushiswap" />,
+  [UniswapV2RoutablePlatform.SWAPR.name]: <img width={16} height={16} src={SwaprLogo} alt="swapr" />,
+  [UniswapV2RoutablePlatform.HONEYSWAP.name]: <img width={16} height={16} src={HoneyswapLogo} alt="honeyswap" />,
+  [UniswapV2RoutablePlatform.BAOSWAP.name]: <img width={16} height={16} src={BaoswapLogo} alt="baoswap" />,
+  [UniswapV2RoutablePlatform.LEVINSWAP.name]: <img width={16} height={16} src={LevinswapLogo} alt="levinswap" />,
+  [RoutablePlatform.ZEROX.name]: <img width={16} height={16} src={ZeroXLogo} alt="0x" />
 }

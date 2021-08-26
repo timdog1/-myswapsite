@@ -1,7 +1,8 @@
 import { BigNumber } from '@ethersproject/bignumber'
-import { ChainId, JSBI, Percent, RoutablePlatform, Trade, TradeType } from '@swapr/sdk'
+import { TransactionRequest } from '@ethersproject/abstract-provider'
+import { ChainId, UniswapV2RoutablePlatform, Trade } from '@swapr/sdk'
 import { useEffect, useMemo, useState } from 'react'
-import { BIPS_BASE, INITIAL_ALLOWED_SLIPPAGE } from '../constants'
+import { INITIAL_ALLOWED_SLIPPAGE } from '../constants'
 import { useTransactionAdder } from '../state/transactions/hooks'
 import { calculateGasMargin, getSigner, isAddress, shortenAddress } from '../utils'
 import { useActiveWeb3React } from './index'
@@ -37,15 +38,15 @@ type EstimatedSwapCall = SuccessfulCall | FailedCall
  * @param recipientAddressOrName
  */
 export function useSwapsTransactions(
-  trades: (Trade | undefined)[] | undefined, // trade to execute, required
+  trades: Trade[] | undefined, // trade to execute, required
   allowedSlippage: number = INITIAL_ALLOWED_SLIPPAGE, // in bips
   recipientAddressOrName: string | null // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
-): UnsignedTransaction[][] {
+): UnsignedTransaction[] {
   const { account, chainId, library } = useActiveWeb3React()
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
   const deadline = useTransactionDeadline()
-  const [transactions, setTransactions] = useState<UnsignedTransaction[][]>([])
+  const [transactions, setTransactions] = useState<UnsignedTransaction[]>([])
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -56,27 +57,10 @@ export function useSwapsTransactions(
       setTransactions(
         await Promise.all(
           trades.map(async trade => {
-            if (!trade) return []
-            const transactions = []
-            transactions.push(
-              await trade.swapTransaction({
-                feeOnTransfer: false,
-                allowedSlippage: new Percent(JSBI.BigInt(allowedSlippage), BIPS_BASE),
-                recipient,
-                ttl: deadline.toNumber()
-              })
-            )
-            if (trade.tradeType === TradeType.EXACT_INPUT) {
-              transactions.push(
-                await trade.swapTransaction({
-                  feeOnTransfer: true,
-                  allowedSlippage: new Percent(JSBI.BigInt(allowedSlippage), BIPS_BASE),
-                  recipient,
-                  ttl: deadline.toNumber()
-                })
-              )
-            }
-            return transactions
+            return trade.swapTransaction({
+              recipient,
+              ttl: deadline.toNumber()
+            })
           })
         )
       )
@@ -99,7 +83,7 @@ export function useSwapCallback(
   const [preferredGasPrice] = useUserPreferredGasPrice()
 
   const memoizedTrades = useMemo(() => (trade ? [trade] : undefined), [trade])
-  const [swapTransactions] = useSwapsTransactions(memoizedTrades, allowedSlippage, recipientAddressOrName)
+  const swapTransactions = useSwapsTransactions(memoizedTrades, allowedSlippage, recipientAddressOrName)
 
   const addTransaction = useTransactionAdder()
 
@@ -126,7 +110,7 @@ export function useSwapCallback(
             if (chainId === ChainId.XDAI) {
               transaction.gasLimit = BigNumber.from('1000000')
             }
-            const estimableTransaction = { ...transaction, type: transaction.type || undefined }
+            const estimableTransaction = { ...transaction, type: undefined, from: account }
             return library
               .estimateGas(estimableTransaction)
               .then(gasEstimate => {
@@ -187,13 +171,15 @@ export function useSwapCallback(
         }
 
         const { transaction, gasEstimate } = successfulEstimation
-        const transactionRequest = {
+        const transactionRequest: TransactionRequest = {
           ...transaction,
           from: account,
           gasLimit: calculateGasMargin(gasEstimate),
-          gasPrice: normalizedGasPrice,
-          type: undefined
+          gasPrice: normalizedGasPrice ? BigNumber.from(normalizedGasPrice) : undefined,
+          type: undefined,
+          value: transaction.value
         }
+        console.log(transactionRequest)
 
         const signer = getSigner(library, account)
         return signer
@@ -206,7 +192,7 @@ export function useSwapCallback(
             const platformName = trade.platform.name
 
             const base = `Swap ${inputAmount} ${inputSymbol} for ${outputAmount} ${outputSymbol} ${
-              platformName !== RoutablePlatform.SWAPR.name ? `on ${platformName}` : ''
+              platformName !== UniswapV2RoutablePlatform.SWAPR.name ? `on ${platformName}` : ''
             }`
             const withRecipient =
               recipient === account

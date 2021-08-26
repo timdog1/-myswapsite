@@ -1,7 +1,7 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
-import { Trade, TokenAmount, CurrencyAmount, ChainId } from '@swapr/sdk'
-import { useCallback, useMemo } from 'react'
+import { Trade, TokenAmount, CurrencyAmount } from '@swapr/sdk'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTokenAllowance } from '../data/Allowances'
 import { Field } from '../state/swap/actions'
 import { useTransactionAdder, useHasPendingApproval } from '../state/transactions/hooks'
@@ -10,6 +10,10 @@ import { calculateGasMargin } from '../utils'
 import { useTokenContract } from './useContract'
 import { useActiveWeb3React } from './index'
 import { useNativeCurrency } from './useNativeCurrency'
+import { useSwapState } from '../state/swap/hooks'
+import useENS from './useENS'
+import { BigNumber, constants } from 'ethers'
+import useTransactionDeadline from './useTransactionDeadline'
 
 export enum ApprovalState {
   UNKNOWN,
@@ -99,11 +103,36 @@ export function useApproveCallback(
 }
 
 // wraps useApproveCallback in the context of a swap
-export function useApproveCallbackFromTrade(trade?: Trade, allowedSlippage = 0) {
-  const { chainId } = useActiveWeb3React()
-  const amountToApprove = useMemo(
-    () => (trade ? computeSlippageAdjustedAmounts(trade, allowedSlippage)[Field.INPUT] : undefined),
-    [trade, allowedSlippage]
-  )
-  return useApproveCallback(amountToApprove, trade?.platform.routerAddress[chainId || ChainId.MAINNET])
+export function useApproveCallbackFromTrade(trade?: Trade) {
+  const { account } = useActiveWeb3React()
+  const deadline = useTransactionDeadline()
+  const { recipient: recipientAddressOrName } = useSwapState()
+  const { address: recipientAddress } = useENS(recipientAddressOrName)
+  const recipient = useMemo(() => (!recipientAddressOrName ? account : recipientAddress), [
+    account,
+    recipientAddress,
+    recipientAddressOrName
+  ])
+  const [addressToApprove, setAddressToApprove] = useState<string | undefined>()
+
+  const amountToApprove = useMemo(() => (trade ? computeSlippageAdjustedAmounts(trade)[Field.INPUT] : undefined), [
+    trade
+  ])
+
+  useEffect(() => {
+    const fetchAddressToApprove = async () => {
+      if (!trade) {
+        setAddressToApprove(undefined)
+        return
+      }
+      const swapTransaction = await trade.swapTransaction({
+        recipient: recipient || constants.AddressZero,
+        ttl: (deadline || BigNumber.from('1')).toNumber()
+      })
+      setAddressToApprove(swapTransaction.to)
+    }
+    fetchAddressToApprove()
+  })
+
+  return useApproveCallback(amountToApprove, addressToApprove)
 }

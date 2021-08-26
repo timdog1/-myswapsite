@@ -1,4 +1,4 @@
-import { CurrencyAmount, JSBI, Trade, Token, RoutablePlatform } from '@swapr/sdk'
+import { CurrencyAmount, JSBI, Trade, Token, UniswapV2RoutablePlatform, RoutablePlatform } from '@swapr/sdk'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { Repeat } from 'react-feather'
 import { Text } from 'rebass'
@@ -165,14 +165,14 @@ export default function Swap() {
       : parsedAmounts[dependentField]?.toSignificant(6) ?? ''
   }
 
-  const route = trade?.route
+  const details = trade?.details
   const userHasSpecifiedInputOutput = Boolean(
     currencies[Field.INPUT] && currencies[Field.OUTPUT] && parsedAmounts[independentField]?.greaterThan(JSBI.BigInt(0))
   )
-  const noRoute = !route
+  const noDetails = !details
 
   // check whether the user has approved the router on the input token
-  const [approval, approveCallback] = useApproveCallbackFromTrade(trade, allowedSlippage)
+  const [approval, approveCallback] = useApproveCallbackFromTrade(trade)
 
   // check if user has gone through approval process, used to show two step buttons, reset on token change
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
@@ -337,7 +337,7 @@ export default function Swap() {
                     <TYPE.body fontSize="11px" lineHeight="15px" fontWeight="500">
                       Best price found on{' '}
                       <span style={{ color: 'white', fontWeight: 700 }}>{bestPricedTrade?.platform.name}</span>.
-                      {trade.platform.name !== RoutablePlatform.SWAPR.name ? (
+                      {trade.platform.name !== UniswapV2RoutablePlatform.SWAPR.name ? (
                         <>
                           {' '}
                           Swap with <span style={{ color: 'white', fontWeight: 700 }}>NO additional fees</span>
@@ -372,7 +372,7 @@ export default function Swap() {
                   {wrapInputError ??
                     (wrapType === WrapType.WRAP ? 'Wrap' : wrapType === WrapType.UNWRAP ? 'Unwrap' : null)}
                 </ButtonPrimary>
-              ) : noRoute && userHasSpecifiedInputOutput ? (
+              ) : noDetails && userHasSpecifiedInputOutput ? (
                 <ButtonPrimary style={{ textAlign: 'center' }} disabled>
                   Insufficient liquidity
                 </ButtonPrimary>
