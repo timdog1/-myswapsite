@@ -271,14 +271,21 @@ export const useBridgeTransactionsSummary = () => {
         return total
       }, [])
 
-      const passed24h = new Date().getTime() - 1000 * 60 * 60 * 24
-
-      return [...l1Summaries, ...l2Summaries].filter(summary => {
-        if (!summary.timestampResolved) return true
-        return summary.timestampResolved >= passed24h
-      })
+      return [...l1Summaries, ...l2Summaries]
     }
 
     return []
   }, [l1ChainId, l2ChainId, state])
+}
+
+export const useFiltered = (filter: boolean) => {
+  const bridgeTransactionsSummary = useBridgeTransactionsSummary()
+  const passed24h = new Date().getTime() - 1000 * 60 * 60 * 24
+
+  if (filter) {
+    return bridgeTransactionsSummary.filter(summary => {
+      if (!summary.timestampResolved) return true
+      return summary.timestampResolved >= passed24h
+    })
+  } else return bridgeTransactionsSummary
 }

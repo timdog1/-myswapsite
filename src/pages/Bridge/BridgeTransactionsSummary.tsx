@@ -11,14 +11,18 @@ import { NETWORK_DETAIL } from '../../constants'
 interface BridgeTransactionsSummaryProps extends HideableAutoColumnProps {
   transactions: BridgeTransactionSummary[]
   collectableTx: BridgeTransactionSummary
+  filter: boolean
   onCollect: (tx: BridgeTransactionSummary) => void
+  onFilter: (filter: boolean) => void
 }
 
 export const BridgeTransactionsSummary = ({
   show,
   transactions,
   collectableTx,
-  onCollect
+  filter,
+  onCollect,
+  onFilter
 }: BridgeTransactionsSummaryProps) => {
   return (
     <HideableAutoColumn show={show}>
@@ -66,6 +70,9 @@ export const BridgeTransactionsSummary = ({
             Collect
           </ButtonPrimary>
         )}
+        <ButtonPrimary onClick={() => onFilter(filter)} mt="12px">
+          Filter
+        </ButtonPrimary>
       </AdvancedDetailsFooter>
     </HideableAutoColumn>
   )

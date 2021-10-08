@@ -15,7 +15,7 @@ import { useBridgeInfo, useBridgeActionHandlers } from '../../state/bridge/hooks
 
 import { NetworkSwitcher as NetworkSwitcherPopover } from '../../components/NetworkSwitcher'
 import { useArbBridge, useBridge } from '../../hooks/useArbBridge'
-import { BridgeTransactionSummary, useBridgeTransactionsSummary } from '../../state/bridgeTransactions/hooks'
+import { BridgeTransactionSummary, useFiltered } from '../../state/bridgeTransactions/hooks'
 import { BridgeTransactionsSummary } from './BridgeTransactionsSummary'
 import { BridgeStep, createNetworkOptions, getNetworkOptionById } from './utils'
 import { BridgeActionPanel } from './BridgeActionPanel'
@@ -70,7 +70,8 @@ export default function Bridge() {
   const [showFromList, setShowFromList] = useState(false)
 
   const { depositEth, withdrawEth, triggerOutboxEth } = useArbBridge()
-  const bridgeSummaries = useBridgeTransactionsSummary()
+
+  const [txsFilter, setTxsFilter] = useState(true)
 
   useEffect(() => {
     const timer = setTimeout(() => step === BridgeStep.Pending && setStep(BridgeStep.Ready), 2000)
@@ -81,6 +82,9 @@ export default function Bridge() {
   const maxAmountInput: CurrencyAmount | undefined = maxAmountSpend(currencyBalance, chainId)
   const atMaxAmountInput = Boolean((maxAmountInput && parsedAmount?.equalTo(maxAmountInput)) || !isNetworkConnected)
   const isCollecting = step === BridgeStep.Collect
+  const bridgeSummaries = useFiltered(txsFilter)
+
+  const handleTxsFilter = () => setTxsFilter(currentVal => !currentVal)
 
   const handleResetBridge = useCallback(() => {
     onUserInput('')
@@ -212,7 +216,9 @@ export default function Bridge() {
           show
           transactions={bridgeSummaries}
           collectableTx={collectableTx}
+          filter
           onCollect={handleCollect}
+          onFilter={handleTxsFilter}
         />
       )}
 

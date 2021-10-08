@@ -76,6 +76,24 @@ export function useBridgeActionHandlers(): {
     [dispatch]
   )
 
+  // const bridgeTransactionsSummary = useBridgeTransactionsSummary()
+
+  // const onToggleTxsFilter = useCallback(
+  //   (filter: boolean) => {
+  //     dispatch(filterTxsList())
+
+  //     const passed24h = new Date().getTime() - 1000 * 60 * 60 * 24
+
+  //     if (filter) {
+  //       return bridgeTransactionsSummary.filter(summary => {
+  //         if (!summary.timestampResolved) return true
+  //         return summary.timestampResolved >= passed24h
+  //       })
+  //     } else return bridgeTransactionsSummary
+  //   },
+  //   [bridgeTransactionsSummary, dispatch]
+  // )
+
   return {
     onCurrencySelection,
     onUserInput,
