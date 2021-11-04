@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef } from 'react'
+import React, { useCallback, useRef } from 'react'
 import styled from 'styled-components'
 import { AdvancedDetailsFooter } from '../../components/AdvancedDetailsFooter'
 import { ButtonPrimary, ShowMoreButton } from '../../components/Button'
@@ -11,7 +11,6 @@ import { NETWORK_DETAIL } from '../../constants'
 import { useBridgeTxsFilter } from '../../state/bridge/hooks'
 import { BridgeTxsFilter } from '../../state/bridge/reducer'
 import { getExplorerLink } from '../../utils'
-import { useWindowSize } from '../../hooks/useWindowSize'
 
 interface BridgeTransactionsSummaryProps {
   transactions: BridgeTransactionSummary[]
@@ -33,25 +32,33 @@ export const BridgeTransactionsSummary = ({
 
   return (
     <>
+      <TableContainer>
+        <Header>
+          <SingleColumnHeader>Bridging</SingleColumnHeader>
+          <SingleColumnHeader>From</SingleColumnHeader>
+          <SingleColumnHeader>To</SingleColumnHeader>
+          <SingleColumnHeader>Status</SingleColumnHeader>
+        </Header>
+        <Body>
+          {Object.values(transactions).map((tx, index) => (
+            <BridgeTransactionsSummaryRow key={index} tx={tx} onCollect={onCollect} />
+          ))}
+        </Body>
+      </TableContainer>
       <HideableAutoColumn show>
         <AdvancedDetailsFooter fullWidth padding="16px">
           <Table>
             <thead>
               <tr>
-                <Th>Bridging</Th>
-                <Th align="right">From</Th>
-                <Th align="right">To</Th>
-                <Th align="right">Status</Th>
+                <Th align="center">Bridging</Th>
+                <Th align="center">From</Th>
+                <Th align="center">To</Th>
+                <Th align="center">Status</Th>
               </tr>
             </thead>
             <tbody>
               {Object.values(transactions).map((tx, index) => (
-                <BridgeTransactionsSummaryRow
-                  transactionsLength={transactions.length}
-                  key={index}
-                  tx={tx}
-                  onCollect={onCollect}
-                />
+                <BridgeTransactionsSummaryRow key={index} tx={tx} onCollect={onCollect} />
               ))}
             </tbody>
           </Table>
@@ -70,13 +77,69 @@ export const BridgeTransactionsSummary = ({
   )
 }
 
-const Td = styled.td`
-  padding: 0 8px;
-
-  &:not(:first-child) {
-    text-align: right;
-  }
+const TableContainer = styled.div`
+  display: flex;
+  flex-flow: column;
+  padding: 0;
+  margin: 0;
+  list-style-none;
 `
+const Header = styled.div`
+  display: flex;
+  flex-flow: row;
+  justify-content: space-around;
+  align-items: center;
+  color: #f54242;
+  font-size: 1rem;
+`
+const Body = styled.div`
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+`
+
+const SingleRow = styled.div`
+  display: flex;
+  flex-flow: row;
+  justify-content: space-around;
+
+  border-radius: 0.5rem;
+  padding: 0.25rem 0rem;
+  font-weight: 500;
+  font-size: 0.825rem;
+  color: ${({ theme }) => theme.text5};
+`
+
+const SingleColumn = styled.div`
+display: flex
+  flex-flow: row;
+  justify-content: center;
+  align-items: center;
+`
+const SingleColumnHeader = styled(Header)``
+
+const SingleDotColumn = styled(SingleColumn)<{ success: boolean }>`
+  color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
+  flex-flow: row;
+`
+const SingleColumnLeft = styled(SingleColumn)`
+  justify-content: flex-start;
+`
+
+const TextBridging = styled.div`
+color=#ffffff;
+   fontSize="14px"; 
+   lineHeight="14px"; 
+   fontWeight="600"
+`
+
+// const Td = styled.td`
+//   padding: 0 8px;
+
+//   &:not(:first-child) {
+//     text-align: right;
+//   }
+// `
 
 const Link = styled.a`
   cursor: initial;
@@ -95,27 +158,27 @@ const TextFrom = styled.div`
   position: relative;
 `
 
-const Progress = styled.span<{ dashedLineWidth: number; success: boolean }>`
-  position: absolute;
-  right: -3px;
-  top: 50%;
-  transform: translate(100%, -50%);
-  width: ${({ dashedLineWidth }) => dashedLineWidth - 2 + 'px'};
-  height: 2px;
-  background-color: #8780bf;
-  -webkit-mask-image: repeating-linear-gradient(90deg, transparent, transparent 2px, black 2px, black 4px);
-  mask-image: repeating-linear-gradient(90deg, transparent, transparent 2px, black 2px, black 4px);
+// const Progress = styled.span<{ dashedLineWidth: number; success: boolean }>`
+//   position: absolute;
+//   right: -3px;
+//   top: 50%;
+//   transform: translate(100%, -50%);
+//   width: ${({ dashedLineWidth }) => dashedLineWidth - 2 + 'px'};
+//   height: 2px;
+//   background-color: #8780bf;
+//   -webkit-mask-image: repeating-linear-gradient(90deg, transparent, transparent 2px, black 2px, black 4px);
+//   mask-image: repeating-linear-gradient(90deg, transparent, transparent 2px, black 2px, black 4px);
 
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: ${({ success }) => (success ? '100%' : '50%')};
-    height: 100%;
-    background-color: #0e9f6e;
-  }
-`
+//   &:before {
+//     content: '';
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     width: ${({ success }) => (success ? '100%' : '50%')};
+//     height: 100%;
+//     background-color: #0e9f6e;
+//   }
+// `
 
 const TextTo = styled(Link)<{ success: boolean }>`
   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
@@ -124,36 +187,24 @@ const TextTo = styled(Link)<{ success: boolean }>`
 interface BridgeTransactionsSummaryRow {
   tx: BridgeTransactionSummary
   onCollect: BridgeTransactionsSummaryProps['onCollect']
-  transactionsLength: number
 }
 
-const BridgeTransactionsSummaryRow = ({ tx, onCollect, transactionsLength }: BridgeTransactionsSummaryRow) => {
+const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSummaryRow) => {
   const { assetName, fromChainId, status, toChainId, value, pendingReason, log } = tx
 
   const refFrom = useRef<HTMLDivElement>(null)
   const refTo = useRef<HTMLAnchorElement>(null)
-  const [dashedLineWidth, setDashedLineWidth] = useState(0)
-
-  const windowSize = useWindowSize()
-
-  useEffect(() => {
-    if (refFrom && refFrom.current && refTo && refTo.current) {
-      const refFromX = refFrom.current.getBoundingClientRect().right
-      const refToX = refTo.current.getBoundingClientRect().left
-      setDashedLineWidth(refToX - refFromX - 3)
-    }
-  }, [transactionsLength, windowSize.width])
 
   const success = status === 'confirmed' || status === 'claimed'
 
   return (
-    <tr style={{ lineHeight: '22px' }}>
-      <Td>
-        <TYPE.main color="white" fontSize="14px" lineHeight="14px" fontWeight="600">
-          {`${value} ${assetName}`}
-        </TYPE.main>
-      </Td>
-      <Td>
+    <SingleRow>
+      <SingleColumnLeft>
+        <TextBridging>
+          {value} {assetName}
+        </TextBridging>
+      </SingleColumnLeft>
+      <SingleColumn>
         <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
           <TextFrom ref={refFrom}>
             <Link
@@ -163,11 +214,14 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect, transactionsLength }: Bri
             >
               {NETWORK_DETAIL[fromChainId].chainName}
             </Link>
-            <Progress success={success} dashedLineWidth={dashedLineWidth} />
           </TextFrom>
         </TYPE.main>
-      </Td>
-      <Td>
+      </SingleColumn>
+      <SingleColumn>
+        <SingleDotColumn success={true}>${status}</SingleDotColumn>
+        <SingleDotColumn success={success}>,,,</SingleDotColumn>
+      </SingleColumn>
+      <SingleColumn>
         <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
           <TextTo
             success={success}
@@ -179,10 +233,10 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect, transactionsLength }: Bri
             {NETWORK_DETAIL[toChainId].chainName}
           </TextTo>
         </TYPE.main>
-      </Td>
+      </SingleColumn>
       <td align="right">
         <BridgeStatusTag status={status} pendingReason={pendingReason} onCollect={() => onCollect(tx)} />
       </td>
-    </tr>
+    </SingleRow>
   )
 }
