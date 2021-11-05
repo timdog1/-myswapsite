@@ -34,9 +34,11 @@ export const BridgeTransactionsSummary = ({
     <>
       <TableContainer>
         <Header>
-          <SingleColumnHeader>Bridging</SingleColumnHeader>
-          <SingleColumnHeader>From</SingleColumnHeader>
-          <SingleColumnHeader>To</SingleColumnHeader>
+          <SingleColumnLeft>Bridging</SingleColumnLeft>
+
+          <SingleColumn>From</SingleColumn>
+          <SingleColumn>To</SingleColumn>
+
           <SingleColumnHeader>Status</SingleColumnHeader>
         </Header>
         <Body>
@@ -80,20 +82,22 @@ export const BridgeTransactionsSummary = ({
 const TableContainer = styled.div`
   display: flex;
   flex-flow: column;
-  padding: 0;
-  margin: 0;
-  list-style-none;
+  border: solid 1px #292643;
+  border-radius: 12px;
 `
 const Header = styled.div`
   display: flex;
-  flex-flow: row;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  color: #f54242;
-  font-size: 1rem;
+  flex-flow: row;
+  padding: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 12px;
+  text-transform: uppercase;
+  color: ${props => props.theme.purple3};
 `
 const Body = styled.div`
-  display: flex;
   flex-flow: column;
   justify-content: space-between;
 `
@@ -111,19 +115,25 @@ const SingleRow = styled.div`
 `
 
 const SingleColumn = styled.div`
-display: flex
+  display: flex
   flex-flow: row;
-  justify-content: center;
+  justify-content: left;
   align-items: center;
 `
 const SingleColumnHeader = styled(Header)``
 
-const SingleDotColumn = styled(SingleColumn)<{ success: boolean }>`
+const SingleDotColumn = styled(SingleColumn)<{ success: boolean; rightMargin: boolean }>`
   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
-  flex-flow: row;
+  margin: ${({ rightMargin }) => (rightMargin ? '0px 7px 0px 0px' : '0px 0px 0px 7px')};
 `
+
 const SingleColumnLeft = styled(SingleColumn)`
+  flex-basis: 25%;
   justify-content: flex-start;
+`
+const SingleColumnFromTo = styled(SingleColumn)`
+  flex-basis: 50%;
+  justify-content: center;
 `
 
 const TextBridging = styled.div`
@@ -204,36 +214,42 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
           {value} {assetName}
         </TextBridging>
       </SingleColumnLeft>
-      <SingleColumn>
-        <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
-          <TextFrom ref={refFrom}>
-            <Link
-              href={getExplorerLink(log[0].chainId, log[0].txHash, 'transaction')}
+      <SingleColumnFromTo>
+        <SingleColumn>
+          <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
+            <TextFrom ref={refFrom}>
+              <Link
+                href={getExplorerLink(log[0].chainId, log[0].txHash, 'transaction')}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {NETWORK_DETAIL[fromChainId].chainName}
+              </Link>
+            </TextFrom>
+          </TYPE.main>
+        </SingleColumn>
+        <SingleColumn>
+          <SingleDotColumn success={true} rightMargin={false}>
+            ...
+          </SingleDotColumn>
+          <SingleDotColumn success={success} rightMargin={true}>
+            ,,,
+          </SingleDotColumn>
+        </SingleColumn>
+        <SingleColumn>
+          <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
+            <TextTo
+              success={success}
+              ref={refTo}
+              href={log[1] && getExplorerLink(log[1].chainId, log[1].txHash, 'transaction')}
               rel="noopener noreferrer"
               target="_blank"
             >
-              {NETWORK_DETAIL[fromChainId].chainName}
-            </Link>
-          </TextFrom>
-        </TYPE.main>
-      </SingleColumn>
-      <SingleColumn>
-        <SingleDotColumn success={true}>${status}</SingleDotColumn>
-        <SingleDotColumn success={success}>,,,</SingleDotColumn>
-      </SingleColumn>
-      <SingleColumn>
-        <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
-          <TextTo
-            success={success}
-            ref={refTo}
-            href={log[1] && getExplorerLink(log[1].chainId, log[1].txHash, 'transaction')}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {NETWORK_DETAIL[toChainId].chainName}
-          </TextTo>
-        </TYPE.main>
-      </SingleColumn>
+              {NETWORK_DETAIL[toChainId].chainName}
+            </TextTo>
+          </TYPE.main>
+        </SingleColumn>
+      </SingleColumnFromTo>
       <td align="right">
         <BridgeStatusTag status={status} pendingReason={pendingReason} onCollect={() => onCollect(tx)} />
       </td>

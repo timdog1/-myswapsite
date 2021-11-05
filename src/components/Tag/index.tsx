@@ -68,7 +68,7 @@ const QuestionHelperWarning = styled(QuestionHelper)`
 `
 
 export const TagPending = ({ text }: { text?: string }) => (
-  <TagWarning style={{ width: '67px' }}>
+  <TagWarning>
     Pending
     <QuestionHelperWarning text={text ?? ''} />
   </TagWarning>
