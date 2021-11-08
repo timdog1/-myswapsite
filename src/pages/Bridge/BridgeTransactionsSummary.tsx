@@ -35,11 +35,13 @@ export const BridgeTransactionsSummary = ({
       <TableContainer>
         <Header>
           <SingleColumnLeft>Bridging</SingleColumnLeft>
+          <SingleColumnFromTo>
+            <SingleColumn>From</SingleColumn>
+            <SingleColumn>xD</SingleColumn>
+            <SingleColumn>To</SingleColumn>
+          </SingleColumnFromTo>
 
-          <SingleColumn>From</SingleColumn>
-          <SingleColumn>To</SingleColumn>
-
-          <SingleColumnHeader>Status</SingleColumnHeader>
+          <SingleColumn>Status</SingleColumn>
         </Header>
         <Body>
           {Object.values(transactions).map((tx, index) => (
@@ -87,7 +89,7 @@ const TableContainer = styled.div`
 `
 const Header = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
   flex-flow: row;
   padding: 5px;
@@ -120,25 +122,32 @@ const SingleColumn = styled.div`
   justify-content: left;
   align-items: center;
 `
-const SingleColumnHeader = styled(Header)``
+// const SingleColumnHeader = styled(Header)``
 
-const SingleDotColumn = styled(SingleColumn)<{ success: boolean; rightMargin: boolean }>`
-  color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
-  margin: ${({ rightMargin }) => (rightMargin ? '0px 7px 0px 0px' : '0px 0px 0px 7px')};
-`
+// const SingleDotColumn = styled(SingleColumn)<{ success: boolean }>`
+//   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
+//   justify-content: space-around;
+//   font-size: 24px;
+//   content: '\\00B7 \\00B7 \\00B7 \\00B7 \\00B7';
+// `
 
 const SingleColumnLeft = styled(SingleColumn)`
   flex-basis: 25%;
   justify-content: flex-start;
 `
 const SingleColumnFromTo = styled(SingleColumn)`
-  flex-basis: 50%;
+  // flex-basis: 50%;
+  width: 50%;
   justify-content: center;
 `
 
+const Dots = ({ success }: { success: boolean }) => {
+  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;&#183;</div>
+}
+
 const TextBridging = styled.div`
 color=#ffffff;
-   fontSize="14px"; 
+font-size: 14px;
    lineHeight="14px"; 
    fontWeight="600"
 `
@@ -166,6 +175,7 @@ const Link = styled.a`
 
 const TextFrom = styled.div`
   position: relative;
+  margin: 0px 7px 0px 0px;
 `
 
 // const Progress = styled.span<{ dashedLineWidth: number; success: boolean }>`
@@ -192,6 +202,7 @@ const TextFrom = styled.div`
 
 const TextTo = styled(Link)<{ success: boolean }>`
   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
+  margin: 0px 0px 0px 7px;
 `
 
 interface BridgeTransactionsSummaryRow {
@@ -229,12 +240,8 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
           </TYPE.main>
         </SingleColumn>
         <SingleColumn>
-          <SingleDotColumn success={true} rightMargin={false}>
-            ...
-          </SingleDotColumn>
-          <SingleDotColumn success={success} rightMargin={true}>
-            ,,,
-          </SingleDotColumn>
+          <Dots success={true}></Dots>
+          <Dots success={success}></Dots>
         </SingleColumn>
         <SingleColumn>
           <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
