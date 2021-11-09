@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react'
 import styled from 'styled-components'
 import { AdvancedDetailsFooter } from '../../components/AdvancedDetailsFooter'
 import { ButtonPrimary, ShowMoreButton } from '../../components/Button'
-import { HideableAutoColumn } from '../../components/Column'
 import { BridgeTransactionSummary } from '../../state/bridgeTransactions/types'
 import { TYPE } from '../../theme'
 import { BridgeStatusTag } from './BridgeStatusTag'
@@ -31,31 +30,29 @@ export const BridgeTransactionsSummary = ({
 
   return (
     <>
-      <HideableAutoColumn show>
-        <AdvancedDetailsFooter fullWidth padding="0px">
-          <TableContainer>
-            <Header>
-              <ColumnBridging>Bridging</ColumnBridging>
-              <ColumnFromToHeader>
-                <Column>From</Column>
-                <Column>To</Column>
-              </ColumnFromToHeader>
-              <Column>Status</Column>
-            </Header>
-            <Body>
-              {Object.values(transactions).map((tx, index) => (
-                <BridgeTransactionsSummaryRow key={index} tx={tx} onCollect={onCollect} />
-              ))}
-            </Body>
-          </TableContainer>
+      <AdvancedDetailsFooter fullWidth padding="0px">
+        <TableContainer>
+          <Header>
+            <ColumnBridging>Bridging</ColumnBridging>
+            <ColumnFromToHeader>
+              <Column>From</Column>
+              <Column>To</Column>
+            </ColumnFromToHeader>
+            <Column>Status</Column>
+          </Header>
+          <Body>
+            {Object.values(transactions).map((tx, index) => (
+              <BridgeTransactionsSummaryRow key={index} tx={tx} onCollect={onCollect} />
+            ))}
+          </Body>
+        </TableContainer>
 
-          {collectableTx && (
-            <ButtonPrimary onClick={() => onCollect(collectableTx)} mt="12px">
-              Collect
-            </ButtonPrimary>
-          )}
-        </AdvancedDetailsFooter>
-      </HideableAutoColumn>
+        {collectableTx && (
+          <ButtonPrimary onClick={() => onCollect(collectableTx)} mt="12px">
+            Collect
+          </ButtonPrimary>
+        )}
+      </AdvancedDetailsFooter>
 
       <ShowMoreButton isOpen={txsFilter === BridgeTxsFilter.NONE} onClick={toggleFilter}>
         Past transactions
