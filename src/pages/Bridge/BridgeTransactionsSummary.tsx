@@ -113,17 +113,21 @@ const Row = styled.div`
 const Column = styled.div`
   display: flex
   flex-flow: row;
-  justify-content: left;
   align-items: center;
+  flex-basis: auto;
 `
 
 const ColumnBridging = styled(Column)`
   flex-basis: 25%;
   justify-content: flex-start;
 `
+
 const ColumnFromTo = styled(Column)`
-  flex-basis: 50%;
   justify-content: center;
+`
+
+const ColumnStatus = styled(Column)`
+  justify-content: flex-start;
 `
 
 const Dots = ({ success }: { success: boolean }) => {
@@ -241,9 +245,9 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
           </TYPE.main>
         </Column>
       </ColumnFromTo>
-      <td align="right">
+      <ColumnStatus>
         <BridgeStatusTag status={status} pendingReason={pendingReason} onCollect={() => onCollect(tx)} />
-      </td>
+      </ColumnStatus>
     </Row>
   )
 }
