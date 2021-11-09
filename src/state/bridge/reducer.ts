@@ -18,7 +18,7 @@ export interface BridgeNetworkInput {
 }
 export interface BridgeModalState {
   readonly status: BridgeModalStatus
-  readonly symbol: string | undefined
+  readonly currencyId: string | undefined
   readonly typedValue: string
   readonly fromNetwork: BridgeNetworkInput
   readonly toNetwork: BridgeNetworkInput
@@ -66,7 +66,7 @@ const initialState: BridgeState = {
   isCheckingWithdrawals: true,
   modal: {
     status: BridgeModalStatus.CLOSED,
-    symbol: '',
+    currencyId: '',
     typedValue: 'ETH',
     fromNetwork: {
       chainId: 1
@@ -142,7 +142,7 @@ export default createReducer<BridgeState>(initialState, builder =>
         }
       }
     })
-    .addCase(setBridgeModalData, (state, { payload: { symbol, typedValue, fromChainId, toChainId } }) => {
+    .addCase(setBridgeModalData, (state, { payload: { currencyId, typedValue, fromChainId, toChainId } }) => {
       return {
         ...state,
         typedValue,
@@ -156,7 +156,7 @@ export default createReducer<BridgeState>(initialState, builder =>
         },
         modal: {
           ...state.modal,
-          symbol,
+          currencyId,
           typedValue,
           fromNetwork: {
             ...state.fromNetwork,
