@@ -119,10 +119,10 @@ const Dots = ({ success }: { success: boolean }) => {
 }
 
 const TextBridging = styled.div`
-color=#ffffff;
-font-size: 14px;
-lineHeight: 14px; 
-fontWeight: 600;
+  color=#ffffff;
+  font-size: 14px;
+  lineHeight: 14px; 
+  fontWeight: 600;
 `
 
 const Link = styled.a`

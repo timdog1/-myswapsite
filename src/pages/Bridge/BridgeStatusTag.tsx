@@ -10,21 +10,17 @@ export type BridgeStatusTagProps = Pick<BridgeTransactionSummary, 'status' | 'pe
 export const BridgeStatusTag = ({ status, pendingReason, onCollect }: BridgeStatusTagProps) => {
   switch (status) {
     case 'confirmed':
-      return <TagSuccess style={{ width: '67px' }}>Confirmed</TagSuccess>
+      return <TagSuccess>Confirmed</TagSuccess>
     case 'pending':
       return <TagPending text={pendingReason} />
     case 'redeem':
-      return (
-        <TagSuccessArrow style={{ width: '67px' }} onClick={onCollect}>
-          Collect
-        </TagSuccessArrow>
-      )
+      return <TagSuccessArrow onClick={onCollect}>Collect</TagSuccessArrow>
     case 'claimed':
-      return <TagSuccess style={{ width: '67px' }}>Collected</TagSuccess>
+      return <TagSuccess>Collected</TagSuccess>
     case 'loading':
       return <Skeleton width="67px" />
     case 'failed':
-      return <TagFailed style={{ width: '67px' }}>Failed</TagFailed>
+      return <TagFailed>Failed</TagFailed>
     default:
       return null
   }

@@ -11,6 +11,7 @@ const Tag = styled.div`
   line-height: 11px;
   text-transform: uppercase;
   border-radius: 4px;
+  width: 67px;
 `
 
 export const TagPrimary = styled(Tag)`
@@ -51,6 +52,7 @@ const TagWarning = styled(Tag)`
   justify-content: space-between;
   color: #a86e3f;
   background: rgba(242, 153, 74, 0.16);
+  width: 67px;
 `
 export const TagFailed = styled(Tag)`
   display: flex;
