@@ -34,14 +34,10 @@ export const BridgeTransactionsSummary = ({
     <>
       <TableContainer>
         <Header>
-          <SingleColumnLeft>Bridging</SingleColumnLeft>
-          <SingleColumnFromTo>
-            <SingleColumn>From</SingleColumn>
-            <SingleColumn>xD</SingleColumn>
-            <SingleColumn>To</SingleColumn>
-          </SingleColumnFromTo>
-
-          <SingleColumn>Status</SingleColumn>
+          <Column>Bridging</Column>
+          <Column>From</Column>
+          <Column>To</Column>
+          <Column>Status</Column>
         </Header>
         <Body>
           {Object.values(transactions).map((tx, index) => (
@@ -104,45 +100,34 @@ const Body = styled.div`
   justify-content: space-between;
 `
 
-const SingleRow = styled.div`
+const Row = styled.div`
   display: flex;
   flex-flow: row;
   justify-content: space-around;
-
-  border-radius: 0.5rem;
   padding: 0.25rem 0rem;
   font-weight: 500;
   font-size: 0.825rem;
   color: ${({ theme }) => theme.text5};
 `
 
-const SingleColumn = styled.div`
+const Column = styled.div`
   display: flex
   flex-flow: row;
   justify-content: left;
   align-items: center;
 `
-// const SingleColumnHeader = styled(Header)``
 
-// const SingleDotColumn = styled(SingleColumn)<{ success: boolean }>`
-//   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
-//   justify-content: space-around;
-//   font-size: 24px;
-//   content: '\\00B7 \\00B7 \\00B7 \\00B7 \\00B7';
-// `
-
-const SingleColumnLeft = styled(SingleColumn)`
+const ColumnBridging = styled(Column)`
   flex-basis: 25%;
   justify-content: flex-start;
 `
-const SingleColumnFromTo = styled(SingleColumn)`
-  // flex-basis: 50%;
-  width: 50%;
+const ColumnFromTo = styled(Column)`
+  flex-basis: 50%;
   justify-content: center;
 `
 
 const Dots = ({ success }: { success: boolean }) => {
-  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;&#183;</div>
+  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;</div>
 }
 
 const TextBridging = styled.div`
@@ -174,7 +159,6 @@ const Link = styled.a`
 `
 
 const TextFrom = styled.div`
-  position: relative;
   margin: 0px 7px 0px 0px;
 `
 
@@ -219,14 +203,14 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
   const success = status === 'confirmed' || status === 'claimed'
 
   return (
-    <SingleRow>
-      <SingleColumnLeft>
+    <Row>
+      <ColumnBridging>
         <TextBridging>
           {value} {assetName}
         </TextBridging>
-      </SingleColumnLeft>
-      <SingleColumnFromTo>
-        <SingleColumn>
+      </ColumnBridging>
+      <ColumnFromTo>
+        <Column>
           <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
             <TextFrom ref={refFrom}>
               <Link
@@ -238,12 +222,12 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
               </Link>
             </TextFrom>
           </TYPE.main>
-        </SingleColumn>
-        <SingleColumn>
+        </Column>
+        <Column>
           <Dots success={true}></Dots>
           <Dots success={success}></Dots>
-        </SingleColumn>
-        <SingleColumn>
+        </Column>
+        <Column>
           <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
             <TextTo
               success={success}
@@ -255,11 +239,11 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
               {NETWORK_DETAIL[toChainId].chainName}
             </TextTo>
           </TYPE.main>
-        </SingleColumn>
-      </SingleColumnFromTo>
+        </Column>
+      </ColumnFromTo>
       <td align="right">
         <BridgeStatusTag status={status} pendingReason={pendingReason} onCollect={() => onCollect(tx)} />
       </td>
-    </SingleRow>
+    </Row>
   )
 }
