@@ -46,7 +46,6 @@ export const BridgeTransactionsSummary = ({
             ))}
           </Body>
         </TableContainer>
-
         {collectableTx && (
           <ButtonPrimary onClick={() => onCollect(collectableTx)} mt="12px">
             Collect
@@ -65,6 +64,7 @@ const TableContainer = styled.div`
   display: flex;
   flex-flow: column;
 `
+
 const Header = styled.div`
   display: flex;
   justify-content: space-around;
@@ -77,6 +77,7 @@ const Header = styled.div`
   text-transform: uppercase;
   color: ${props => props.theme.purple3};
 `
+
 const Body = styled.div`
   flex-flow: column;
   justify-content: space-between;
@@ -111,10 +112,6 @@ const ColumnFromToHeader = styled(Column)`
   justify-content: space-between;
 `
 
-const Dots = ({ success }: { success: boolean }) => {
-  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;</div>
-}
-
 const TextBridging = styled.div`
   color=#ffffff;
   font-size: 14px;
@@ -143,6 +140,10 @@ const TextTo = styled(Link)<{ success: boolean }>`
   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
   margin: 0px 0px 0px 7px;
 `
+
+const Dots = ({ success }: { success: boolean }) => {
+  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;</div>
+}
 
 interface BridgeTransactionsSummaryRow {
   tx: BridgeTransactionSummary
