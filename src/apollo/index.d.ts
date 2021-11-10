@@ -6,18 +6,14 @@ export interface SubgraphLiquidityMiningCampaignRewardToken {
   decimals: string
 }
 
-export interface SubgraphLiquidityMiningCampaignReward {
-  token: SubgraphLiquidityMiningCampaignRewardToken
-  amount: string
-}
-
 export interface SubgraphLiquidityMiningCampaign {
   address: string
   duration: string
   startsAt: string
   endsAt: string
-  rewards: SubgraphLiquidityMiningCampaignReward[]
+  rewardAmounts: string[]
   stakedAmount: string
+  rewardTokens: SubgraphLiquidityMiningCampaignRewardToken[]
   locked: boolean
   stakingCap: string
 }

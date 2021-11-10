@@ -15,7 +15,6 @@ const Section = styled.button<{ disabled: boolean }>`
   border: none;
   text-align: left;
   cursor: ${({ disabled }) => (disabled ? 'auto' : 'pointer')};
-  height: 100%;
 `
 
 const SmallLabel = styled.p`
@@ -38,7 +37,7 @@ const IconWrapper = styled(RowBetween)`
   max-width: 33px;
 
   img {
-    height: 33px;
+    max-width: 100%;
   }
 `
 

@@ -1,20 +1,16 @@
 import React, { ReactNode, useEffect } from 'react'
 import { ChainId } from '@swapr/sdk'
 import { Placement } from '@popperjs/core'
-import { SHOW_TESTNETS } from '../../constants'
 import { useActiveWeb3React } from '../../hooks'
 import { useNetworkSwitch } from '../../hooks/useNetworkSwitch'
 import { ApplicationModal } from '../../state/application/actions'
 import { useModalOpen, useCloseModals } from '../../state/application/hooks'
 import { NetworkSwitcher, NetworkOptionProps, networkOptionsPreset } from '../NetworkSwitcher'
-
 interface NetworkSwitcherPopoverProps {
   children: ReactNode
   modal: ApplicationModal
   placement?: Placement
 }
-
-const TESTNETS = [4, 421611]
 
 export default function NetworkSwitcherPopover({ children, modal, placement }: NetworkSwitcherPopoverProps) {
   const closeModals = useCloseModals()
@@ -35,18 +31,16 @@ export default function NetworkSwitcherPopover({ children, modal, placement }: N
     return connector?.supportedChainIds?.indexOf(networkId) === -1 || chainId === networkId
   }
 
-  const options = networkOptionsPreset
-    .filter(option => SHOW_TESTNETS || !TESTNETS.includes(option.chainId))
-    .map<NetworkOptionProps>(network => {
-      const { chainId, logoSrc, name } = network
+  const options = networkOptionsPreset.map<NetworkOptionProps>(network => {
+    const { chainId, logoSrc, name } = network
 
-      return {
-        logoSrc,
-        header: name,
-        disabled: isOptionDisabled(chainId),
-        onClick: chainId === ChainId.MAINNET ? selectEthereum : () => selectNetwork(chainId)
-      }
-    })
+    return {
+      logoSrc,
+      header: name,
+      disabled: isOptionDisabled(chainId),
+      onClick: chainId === ChainId.MAINNET ? selectEthereum : () => selectNetwork(chainId)
+    }
+  })
 
   return (
     <NetworkSwitcher

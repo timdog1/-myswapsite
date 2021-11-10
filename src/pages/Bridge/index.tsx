@@ -19,18 +19,15 @@ import { useBridgeService } from '../../contexts/BridgeServiceProvider'
 import { useBridgeTransactionsSummary } from '../../state/bridgeTransactions/hooks'
 import { useBridgeInfo, useBridgeActionHandlers, useBridgeModal } from '../../state/bridge/hooks'
 
-import { NETWORK_DETAIL, SHOW_TESTNETS } from '../../constants'
+import { NETWORK_DETAIL } from '../../constants'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { BridgeStep, createNetworkOptions, getNetworkOptionById } from './utils'
 import { BridgeModalStatus } from '../../state/bridge/reducer'
 import { isToken } from '../../hooks/Tokens'
 
 const Wrapper = styled.div`
-  width: 100%;
   max-width: 432px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  margin: 0 auto;
 `
 
 const Title = styled.p`
@@ -43,14 +40,16 @@ const Title = styled.p`
 `
 
 const Row = styled(RowBetween)`
-  display: flex;
-  flex-direction: row;
-  box-sizing: border-box;
   align-items: stretch;
-  justify-content: space-between;
 
-  @media (max-width: 374px) {
-    flex-direction: column;
+  & > div {
+    min-width: 141px;
+    width: 100%;
+  }
+
+  & > div,
+  & > div button {
+    min-height: 100%;
   }
 `
 
@@ -61,12 +60,8 @@ const SwapButton = styled.button<{ disabled: boolean }>`
   cursor: ${({ disabled }) => (disabled ? 'auto' : 'pointer')};
 
   @media only screen and (max-width: 600px) {
-    padding: 8px;
+    padding: 0 8px;
   }
-`
-
-const AssetWrapper = styled.div`
-  flex: 1 0 35%;
 `
 
 export default function Bridge() {
@@ -110,7 +105,7 @@ export default function Bridge() {
     setStep(BridgeStep.Initial)
     setModalStatus(BridgeModalStatus.CLOSED)
     setModalData({
-      currencyId: '',
+      symbol: '',
       typedValue: '',
       fromChainId: 1,
       toChainId: 42161
@@ -137,7 +132,7 @@ export default function Bridge() {
 
   const handleModal = useCallback(async () => {
     setModalData({
-      currencyId: bridgeCurrency?.symbol,
+      symbol: bridgeCurrency?.symbol,
       typedValue: typedValue,
       fromChainId: fromNetwork.chainId,
       toChainId: toNetwork.chainId
@@ -150,7 +145,7 @@ export default function Bridge() {
       setStep(BridgeStep.Collect)
       setCollectableTx(tx)
       setModalData({
-        currencyId: tx.assetName,
+        symbol: tx.assetName,
         typedValue: tx.value,
         fromChainId: tx.fromChainId,
         toChainId: tx.toChainId
@@ -185,41 +180,39 @@ export default function Bridge() {
           <Title>{isCollecting ? 'Collect' : 'Swapr Bridge'}</Title>
         </RowBetween>
         <Row mb="12px">
-          <AssetWrapper ref={fromPanelRef}>
+          <div ref={fromPanelRef}>
             <AssetSelector
               label="from"
               selectedNetwork={getNetworkOptionById(fromNetwork.chainId, fromOptions)}
-              onClick={SHOW_TESTNETS ? () => setShowFromList(val => !val) : () => null}
-              disabled={SHOW_TESTNETS ? isCollecting : true}
+              onClick={() => setShowFromList(val => !val)}
+              disabled={isCollecting}
             />
             <NetworkSwitcherPopover
+              show={showFromList}
+              onOuterClick={() => setShowFromList(false)}
               options={fromOptions}
               showWalletConnector={false}
               parentRef={fromPanelRef}
-              show={SHOW_TESTNETS ? showFromList : false}
-              onOuterClick={SHOW_TESTNETS ? () => setShowFromList(false) : () => null}
-              placement="bottom"
             />
-          </AssetWrapper>
+          </div>
           <SwapButton onClick={onSwapBridgeNetworks} disabled={isCollecting}>
             <img src={ArrowIcon} alt="arrow" />
           </SwapButton>
-          <AssetWrapper ref={toPanelRef}>
+          <div ref={toPanelRef}>
             <AssetSelector
               label="to"
               selectedNetwork={getNetworkOptionById(toNetwork.chainId, toOptions)}
-              onClick={SHOW_TESTNETS ? () => setShowToList(val => !val) : () => null}
-              disabled={SHOW_TESTNETS ? isCollecting : true}
+              onClick={() => setShowToList(val => !val)}
+              disabled={isCollecting}
             />
             <NetworkSwitcherPopover
+              show={showToList}
+              onOuterClick={() => setShowToList(false)}
               options={toOptions}
               showWalletConnector={false}
               parentRef={toPanelRef}
-              show={SHOW_TESTNETS ? showToList : false}
-              onOuterClick={SHOW_TESTNETS ? () => setShowToList(false) : () => null}
-              placement="bottom"
             />
-          </AssetWrapper>
+          </div>
         </Row>
         <CurrencyInputPanel
           label="Amount"
@@ -228,9 +221,9 @@ export default function Bridge() {
           currency={bridgeCurrency}
           onUserInput={onUserInput}
           onMax={!isCollecting ? handleMaxInput : undefined}
+          onCurrencySelect={onCurrencySelection}
+          disableCurrencySelect={isCollecting}
           disabled={isCollecting}
-          onCurrencySelect={() => null}
-          disableCurrencySelect={true}
           id="bridge-currency-input"
         />
         <BridgeActionPanel

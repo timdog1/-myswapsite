@@ -33,17 +33,15 @@ const QUERY = gql`
       endsAt
       locked
       stakingCap
-      rewards {
-        token {
-          derivedNativeCurrency
-          address: id
-          name
-          symbol
-          decimals
-        }
-        amount
+      rewardTokens {
+        derivedNativeCurrency
+        address: id
+        name
+        symbol
+        decimals
       }
       stakedAmount
+      rewardAmounts
     }
   }
 

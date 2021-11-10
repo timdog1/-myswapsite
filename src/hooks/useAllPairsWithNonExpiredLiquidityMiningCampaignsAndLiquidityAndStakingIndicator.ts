@@ -1,21 +1,18 @@
-import { gql } from 'graphql-request'
+import { gql, useQuery } from '@apollo/client'
 import Decimal from 'decimal.js-light'
 import { CurrencyAmount, Pair, Token, TokenAmount, USD } from '@swapr/sdk'
 import { getAddress, parseUnits } from 'ethers/lib/utils'
 import { DateTime, Duration } from 'luxon'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useActiveWeb3React } from '.'
 import { SubgraphLiquidityMiningCampaign } from '../apollo'
 import { useAllTokensFromActiveListsOnCurrentChain } from '../state/lists/hooks'
 import { toLiquidityMiningCampaigns } from '../utils/liquidityMining'
 import { useNativeCurrency } from './useNativeCurrency'
-import { immediateSubgraphClients } from '../apollo/client'
-
-const PAGE_SIZE = 1000
 
 const QUERY = gql`
-  query($lowerTimeLimit: BigInt!, $userId: ID, $pageSize: Int!, $lastId: ID) {
-    pairs(first: $pageSize, where: { id_gt: $lastId }) {
+  query($lowerTimeLimit: BigInt!, $userId: ID) {
+    pairs {
       address: id
       reserve0
       reserve1
@@ -41,17 +38,15 @@ const QUERY = gql`
         endsAt
         locked
         stakingCap
-        rewards {
-          token {
-            address: id
-            name
-            symbol
-            decimals
-            derivedNativeCurrency
-          }
-          amount
+        rewardTokens {
+          address: id
+          name
+          symbol
+          decimals
+          derivedNativeCurrency
         }
         stakedAmount
+        rewardAmounts
         liquidityMiningPositions(where: { stakedAmount_gt: 0, user: $userId }) {
           id
         }
@@ -109,53 +104,24 @@ export function useAllPairsWithNonExpiredLiquidityMiningCampaignsAndLiquidityAnd
       ),
     []
   )
-  const subgraphAccountId = useMemo(() => account?.toLowerCase() || '', [account])
+  const { loading, error, data } = useQuery<QueryResult>(QUERY, {
+    variables: {
+      lowerTimeLimit: memoizedLowerTimeLimit,
+      userId: account?.toLowerCase() || ''
+    }
+  })
   const filterTokenAddress = useMemo(() => tokenFilter?.address.toLowerCase(), [tokenFilter])
 
-  const [loadingPairs, setLoadingPairs] = useState(false)
-  const [pairs, setPairs] = useState<SubgraphPair[]>([])
-
-  useEffect(() => {
-    let cancelled = false
-    const fetchData = async () => {
-      if (!chainId) return
-      const pairs = []
-      let lastId = ''
-      setLoadingPairs(true)
-      setPairs([])
-      try {
-        while (1) {
-          const result = await immediateSubgraphClients[chainId].request<QueryResult>(QUERY, {
-            lowerTimeLimit: memoizedLowerTimeLimit,
-            userId: subgraphAccountId,
-            lastId,
-            pageSize: PAGE_SIZE
-          })
-          pairs.push(...result.pairs)
-          lastId = result.pairs[result.pairs.length - 1].address
-          if (result.pairs.length < PAGE_SIZE) break
-        }
-        if (!cancelled) setPairs(pairs)
-      } finally {
-        setLoadingPairs(false)
-      }
-    }
-    fetchData()
-    return () => {
-      cancelled = true
-    }
-  }, [chainId, memoizedLowerTimeLimit, subgraphAccountId])
-
   return useMemo(() => {
-    if (!chainId) return { loading: false, wrappedPairs: [] }
-    if (pairs.length === 0) return { loading: loadingPairs, wrappedPairs: [] }
+    if (loading) return { loading: true, wrappedPairs: [] }
+    if (error || !data || !chainId) return { loading: false, wrappedPairs: [] }
     const rawPairs = filterTokenAddress
-      ? pairs.filter(
+      ? data.pairs.filter(
           pair =>
             pair.token0.address.toLowerCase() === filterTokenAddress ||
             pair.token1.address.toLowerCase() === filterTokenAddress
         )
-      : pairs
+      : data.pairs
     return {
       loading: false,
       wrappedPairs: rawPairs.map(rawPair => {
@@ -208,5 +174,5 @@ export function useAllPairsWithNonExpiredLiquidityMiningCampaignsAndLiquidityAnd
         }
       }, [])
     }
-  }, [chainId, filterTokenAddress, loadingPairs, nativeCurrency, pairs, tokensInCurrentChain])
+  }, [chainId, data, error, filterTokenAddress, loading, nativeCurrency, tokensInCurrentChain])
 }

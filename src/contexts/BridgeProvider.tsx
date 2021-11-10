@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Bridge } from 'arb-ts'
 import { providers, Signer } from 'ethers'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { useActiveWeb3React } from '../hooks'
-import { useChains } from '../hooks/useChains'
 import { NETWORK_DETAIL } from '../constants'
 import { ChainIdPair } from '../utils/arbitrum'
 import { INFURA_PROJECT_ID } from '../connectors'
 import { POOLING_INTERVAL } from '../utils/getLibrary'
+import { chainIdSelector } from '../state/application/selectors'
 
 type BridgeContextType = {
   bridge: Bridge | null
@@ -44,34 +44,18 @@ const addInfuraKey = (rpcUrl: string) => {
 export const BridgeProvider = ({ children }: { children?: React.ReactNode }) => {
   const { library, chainId, account } = useActiveWeb3React()
   const [bridge, setBridge] = useState<Bridge | null>(null)
-  const chains = useChains()
+  const chains = useSelector(chainIdSelector)
   const dispatch = useDispatch()
 
   useEffect(() => {
-    const abortController = new AbortController()
-
     const initBridge = async (
-      signal: AbortSignal,
       ethSigner: Signer,
       arbSigner: Signer,
       l1GatewayRouterAddress?: string | undefined,
       l2GatewayRouterAddress?: string | undefined
     ) => {
-      if (!signal.aborted) {
-        await new Promise<void>(async (resolve, reject) => {
-          signal.addEventListener('abort', reject)
-
-          try {
-            const bridge = await Bridge.init(ethSigner, arbSigner, l1GatewayRouterAddress, l2GatewayRouterAddress)
-            setBridge(bridge)
-            resolve()
-          } catch (err) {
-            reject()
-          } finally {
-            signal.removeEventListener('abort', reject)
-          }
-        }).catch(() => console.error('BridgeProvider: Failed to set the bridge'))
-      }
+      const bridge = await Bridge.init(ethSigner, arbSigner, l1GatewayRouterAddress, l2GatewayRouterAddress)
+      setBridge(bridge)
     }
 
     setBridge(null)
@@ -95,13 +79,9 @@ export const BridgeProvider = ({ children }: { children?: React.ReactNode }) => 
         }
 
         if (l1Signer && l2Signer) {
-          initBridge(abortController.signal, l1Signer, l2Signer)
+          initBridge(l1Signer, l2Signer)
         }
       }
-    }
-
-    return () => {
-      abortController.abort()
     }
   }, [chainId, library, account, dispatch])
 

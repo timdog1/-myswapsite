@@ -62,34 +62,34 @@ export function toLiquidityMiningCampaign(
   campaign: SubgraphLiquidityMiningCampaign,
   nativeCurrency: Currency
 ): LiquidityMiningCampaign {
-  const rewards = campaign.rewards.map(reward => {
-    const rewardToken = new Token(
+  const rewards = campaign.rewardTokens.map((rewardToken, index) => {
+    const properRewardToken = new Token(
       chainId,
-      getAddress(reward.token.address),
-      parseInt(reward.token.decimals),
-      reward.token.symbol,
-      reward.token.name
+      getAddress(rewardToken.address),
+      parseInt(rewardToken.decimals),
+      rewardToken.symbol,
+      rewardToken.name
     )
     const rewardTokenPriceNativeCurrency = new Price(
-      rewardToken,
+      properRewardToken,
       nativeCurrency,
       parseUnits('1', nativeCurrency.decimals).toString(),
       parseUnits(
-        new Decimal(reward.token.derivedNativeCurrency).toFixed(nativeCurrency.decimals),
+        new Decimal(rewardToken.derivedNativeCurrency).toFixed(nativeCurrency.decimals),
         nativeCurrency.decimals
       ).toString()
     )
     const pricedRewardToken = new PricedToken(
       chainId,
       getAddress(rewardToken.address),
-      rewardToken.decimals,
+      parseInt(rewardToken.decimals),
       rewardTokenPriceNativeCurrency,
       rewardToken.symbol,
       rewardToken.name
     )
     return new PricedTokenAmount(
       pricedRewardToken,
-      parseUnits(new Decimal(reward.amount).toFixed(rewardToken.decimals), rewardToken.decimals).toString()
+      parseUnits(campaign.rewardAmounts[index], rewardToken.decimals).toString()
     )
   })
   const lpTokenPriceNativeCurrency = getLpTokenPrice(

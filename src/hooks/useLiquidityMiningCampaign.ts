@@ -9,7 +9,6 @@ import { usePairReserveNativeCurrency } from './usePairReserveNativeCurrency'
 import { gql, useQuery } from '@apollo/client'
 import { SubgraphLiquidityMiningCampaign } from '../apollo'
 import { getAddress, parseUnits } from 'ethers/lib/utils'
-import { Decimal } from 'decimal.js-light'
 
 const QUERY = gql`
   query($id: ID) {
@@ -20,17 +19,15 @@ const QUERY = gql`
       endsAt
       locked
       stakingCap
-      rewards {
-        token {
-          address: id
-          name
-          symbol
-          decimals
-          derivedNativeCurrency
-        }
-        amount
+      rewardTokens {
+        address: id
+        name
+        symbol
+        decimals
+        derivedNativeCurrency
       }
       stakedAmount
+      rewardAmounts
     }
   }
 `
@@ -51,20 +48,15 @@ export function useLiquidityMiningCampaign(
   const nativeCurrency = useNativeCurrency()
   const rewards = useMemo(() => {
     if (!data || !chainId || !data.liquidityMiningCampaign) return []
-    const { rewards } = data.liquidityMiningCampaign
-    return rewards.map(reward => {
-      const token = new Token(
-        chainId,
-        getAddress(reward.token.address),
-        parseInt(reward.token.decimals),
-        reward.token.symbol,
-        reward.token.name
-      )
-      return new TokenAmount(
-        token,
-        parseUnits(new Decimal(reward.amount).toFixed(token.decimals), token.decimals).toString()
-      )
-    })
+    const { rewardAmounts, rewardTokens: rawRewardTokens } = data.liquidityMiningCampaign
+    const rewardTokens = rawRewardTokens.map(
+      rawToken =>
+        new Token(chainId, getAddress(rawToken.address), parseInt(rawToken.decimals), rawToken.symbol, rawToken.name)
+    )
+    return rewardAmounts.map(
+      (amount, index) =>
+        new TokenAmount(rewardTokens[index], parseUnits(amount, rewardTokens[index].decimals).toString())
+    )
   }, [chainId, data])
   const { pricedTokenAmounts: pricedRewardAmounts } = useNativeCurrencyPricedTokenAmounts(rewards)
   const lpTokenTotalSupply = usePairLiquidityTokenTotalSupply(targetedPair)
