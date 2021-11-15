@@ -15,19 +15,6 @@ const TableContainer = styled.div`
   flex-flow: column;
 `
 
-const Header = styled.div`
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  flex-flow: row;
-  padding: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 12px;
-  text-transform: uppercase;
-  color: ${props => props.theme.purple3};
-`
-
 const Body = styled.div`
   flex-flow: column;
   justify-content: space-between;
@@ -36,29 +23,43 @@ const Body = styled.div`
 const Row = styled.div`
   display: flex;
   flex-flow: row;
-  justify-content: space-around;
+  justify-content: space-between;
+  align-items: center;
   padding: 0.25rem 0rem;
   font-weight: 500;
   font-size: 0.825rem;
   color: ${({ theme }) => theme.text5};
 `
 
+const Header = styled(Row)`
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 12px;
+  text-transform: uppercase;
+  color: ${props => props.theme.purple3};
+`
+
 const Column = styled.div`
   display: flex;
-  align-items: center;
 `
 
 const ColumnBridging = styled(Column)`
   flex: 0 0 25%;
 `
 
-const ColumnFromTo = styled(Column)`
-  justify-content: center;
+const ColumnFrom = styled(Column)`
+  justify-content: flex-end;
+  flex: 0 0 20%;
 `
 
-const ColumnFromToHeader = styled(Column)`
-  flex: 0 0 30%;
-  justify-content: space-between;
+const ColumnTo = styled(Column)`
+  justify-content: flex-end;
+  flex: 0 0 35%;
+`
+
+const ColumnStatus = styled(Column)`
+  flex: 0 0 20%;
+  justify-content: flex-end;
 `
 
 const Link = styled.a`
@@ -74,17 +75,27 @@ const Link = styled.a`
   }
 `
 
-const TextFrom = styled.div`
-  margin: 0px 7px 0px 0px;
-`
+const TextFrom = styled.div``
 
 const TextTo = styled(Link)<{ success: boolean }>`
   color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
-  margin: 0px 0px 0px 7px;
+`
+
+const Filler = styled.div`
+  display: flex;
+  flex-flow: row;
+  align-items: center;
+  overflow: hidden;
+  margin: 0px 7px;
 `
 
 const Dots = ({ success }: { success: boolean }) => {
-  return <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}> &#183;&#183;&#183;&#183;</div>
+  return (
+    <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}>
+      {' '}
+      &#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;
+    </div>
+  )
 }
 
 interface BridgeTransactionsSummaryProps {
@@ -107,15 +118,13 @@ export const BridgeTransactionsSummary = ({
 
   return (
     <>
-      <AdvancedDetailsFooter fullWidth padding="0px">
+      <AdvancedDetailsFooter fullWidth padding="12px">
         <TableContainer>
           <Header>
             <ColumnBridging>Bridging</ColumnBridging>
-            <ColumnFromToHeader>
-              <Column>From</Column>
-              <Column>To</Column>
-            </ColumnFromToHeader>
-            <Column>Status</Column>
+            <ColumnFrom>From</ColumnFrom>
+            <ColumnTo>To</ColumnTo>
+            <ColumnStatus>Status</ColumnStatus>
           </Header>
           <Body>
             {Object.values(transactions).map((tx, index) => (
@@ -153,40 +162,38 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
           {value} {assetName}
         </TYPE.main>
       </ColumnBridging>
-      <ColumnFromTo>
-        <Column>
-          <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
-            <TextFrom>
-              <Link
-                href={getExplorerLink(log[0].chainId, log[0].txHash, 'transaction')}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                {NETWORK_DETAIL[fromChainId].chainName}
-              </Link>
-            </TextFrom>
-          </TYPE.main>
-        </Column>
-        <Column>
-          <Dots success={true} />
-          <Dots success={success} />
-        </Column>
-        <Column>
-          <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
-            <TextTo
-              success={success}
-              href={log[1] && getExplorerLink(log[1].chainId, log[1].txHash, 'transaction')}
+      <ColumnFrom>
+        <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
+          <TextFrom>
+            <Link
+              href={getExplorerLink(log[0].chainId, log[0].txHash, 'transaction')}
               rel="noopener noreferrer"
               target="_blank"
             >
-              {NETWORK_DETAIL[toChainId].chainName}
-            </TextTo>
-          </TYPE.main>
-        </Column>
-      </ColumnFromTo>
-      <Column>
+              {NETWORK_DETAIL[fromChainId].chainName}
+            </Link>
+          </TextFrom>
+        </TYPE.main>
+      </ColumnFrom>
+      <ColumnTo>
+        <Filler>
+          <Dots success={true} />
+          <Dots success={success} />
+        </Filler>
+        <TYPE.main color="text4" fontSize="10px" lineHeight="12px" display="inline">
+          <TextTo
+            success={success}
+            href={log[1] && getExplorerLink(log[1].chainId, log[1].txHash, 'transaction')}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {NETWORK_DETAIL[toChainId].chainName}
+          </TextTo>
+        </TYPE.main>
+      </ColumnTo>
+      <ColumnStatus>
         <BridgeStatusTag status={status} pendingReason={pendingReason} onCollect={() => onCollect(tx)} />
-      </Column>
+      </ColumnStatus>
     </Row>
   )
 }
