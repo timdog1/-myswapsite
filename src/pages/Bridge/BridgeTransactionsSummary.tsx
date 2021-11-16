@@ -91,9 +91,9 @@ const Filler = styled.div`
 
 const Dots = ({ success }: { success: boolean }) => {
   return (
-    <div style={{ color: success ? '#0e9f6e' : '#8780bf' }}>
+    <div style={{ overflow: 'hidden', maxWidth: '40%', color: success ? '#0e9f6e' : '#8780bf' }}>
       {' '}
-      &#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;
+      &#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;&#183;
     </div>
   )
 }
