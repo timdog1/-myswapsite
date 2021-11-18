@@ -2,7 +2,7 @@ import React, { useCallback } from 'react'
 import styled from 'styled-components'
 import { AdvancedDetailsFooter } from '../../components/AdvancedDetailsFooter'
 import { ButtonPrimary, ShowMoreButton } from '../../components/Button'
-import { BridgeTransactionSummary } from '../../state/bridgeTransactions/types'
+import { BridgeTransactionStatus, BridgeTransactionSummary } from '../../state/bridgeTransactions/types'
 import { BridgeStatusTag } from './BridgeStatusTag'
 import { NETWORK_DETAIL } from '../../constants'
 import { useBridgeTxsFilter } from '../../state/bridge/hooks'
@@ -86,30 +86,21 @@ const Filler = styled.div`
   margin: 0px 5px;
 `
 
-const DotFiller = styled.span`
+const Dots = styled.div<{ status: BridgeTransactionStatus }>`
+  display: 'flex';
+  height: '100%';
+  overflow: 'hidden';
+  width: '50%';
+  justify-content: 'space-between';
+  align-items: 'center';
+  color: ${({ theme, status }) =>
+    status === 'confirmed' || status === 'claimed' ? theme.green1 : status === 'failed' ? theme.red2 : theme.purple3};
+
   &:after {
     font-size: 14px;
     content: '\\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7 \\00B7';
   }
 `
-
-const Dots = ({ success }: { success: boolean }) => {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        height: '100%',
-        overflow: 'hidden',
-        width: '50%',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        color: success ? '#0e9f6e' : '#8780bf'
-      }}
-    >
-      <DotFiller />
-    </div>
-  )
-}
 
 const TextBridging = styled.div`
   font-size: 12px;
@@ -123,10 +114,11 @@ const TextFrom = styled.div`
   color: ${props => props.theme.text4};
 `
 
-const TextTo = styled(Link)<{ success: boolean }>`
+const TextTo = styled(Link)<{ status: BridgeTransactionStatus }>`
   font-size: 10px;
   line-height: 12px;
-  color: ${({ success }) => (success ? '#0e9f6e' : '#8780bf')};
+  color: ${({ theme, status }) =>
+    status === 'confirmed' || status === 'claimed' ? theme.green1 : status === 'failed' ? theme.red2 : theme.purple3};
 `
 interface BridgeTransactionsSummaryProps {
   transactions: BridgeTransactionSummary[]
@@ -183,7 +175,6 @@ interface BridgeTransactionsSummaryRow {
 
 const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSummaryRow) => {
   const { assetName, fromChainId, status, toChainId, value, pendingReason, log } = tx
-  const success = status === 'confirmed' || status === 'claimed'
 
   return (
     <Row>
@@ -205,11 +196,11 @@ const BridgeTransactionsSummaryRow = ({ tx, onCollect }: BridgeTransactionsSumma
       </ColumnFrom>
       <ColumnToFlex>
         <Filler>
-          <Dots success={true} />
-          <Dots success={success} />
+          <Dots status={'confirmed'} />
+          <Dots status={status} />
         </Filler>
         <TextTo
-          success={success}
+          status={status}
           href={log[1] && getExplorerLink(log[1].chainId, log[1].txHash, 'transaction')}
           rel="noopener noreferrer"
           target="_blank"
