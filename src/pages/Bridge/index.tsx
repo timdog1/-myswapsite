@@ -29,6 +29,7 @@ import { isToken } from '../../hooks/Tokens'
 const Wrapper = styled.div`
   max-width: 432px;
   margin: 0 auto;
+  width: 100%;
 `
 
 const Title = styled.p`

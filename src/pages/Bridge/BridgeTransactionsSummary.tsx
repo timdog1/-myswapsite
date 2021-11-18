@@ -58,6 +58,7 @@ const ColumnStatus = styled.div`
   display: flex;
   justify-content: flex-end;
   width: 20%;
+  margin: 0px 0px 0px 5px;
 `
 
 const ColumnToFlex = styled(ColumnTo)`
