@@ -7,7 +7,7 @@ import AppBody from '../AppBody'
 import { AssetSelector } from './AssetsSelector'
 import { RowBetween } from '../../components/Row'
 import ArrowIcon from '../../assets/svg/arrow.svg'
-import { BridgeActionPanel } from './BridgeActionPanel'
+import { BridgeActionPanel } from './ActionPanel/BridgeActionPanel'
 import { BridgeModal } from './BridgeModals/BridgeModal'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import { BridgeTransactionsSummary } from './BridgeTransactionsSummary'
@@ -19,7 +19,7 @@ import { useBridgeService } from '../../contexts/BridgeServiceProvider'
 import { useBridgeTransactionsSummary } from '../../state/bridgeTransactions/hooks'
 import { useBridgeInfo, useBridgeActionHandlers, useBridgeModal, useBridgeTxsFilter } from '../../state/bridge/hooks'
 
-import { NETWORK_DETAIL } from '../../constants'
+import { NETWORK_DETAIL, SHOW_TESTNETS } from '../../constants'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { BridgeStep, createNetworkOptions, getNetworkOptionById } from './utils'
 import { BridgeTxsFilter } from '../../state/bridge/reducer'
@@ -151,6 +151,7 @@ export default function Bridge() {
 
   const handleCollect = useCallback(
     (tx: BridgeTransactionSummary) => {
+      onCurrencySelection(tx.assetAddress || 'ETH')
       setStep(BridgeStep.Collect)
       setCollectableTx(tx)
       setModalData({
@@ -160,12 +161,12 @@ export default function Bridge() {
         toChainId: tx.toChainId
       })
     },
-    [setModalData]
+    [onCurrencySelection, setModalData]
   )
 
   const handleCollectConfirm = useCallback(async () => {
     if (!bridgeService) return
-    await bridgeService.triggerOutboxEth(collectableTx)
+    await bridgeService.collect(collectableTx)
     setStep(BridgeStep.Success)
   }, [bridgeService, collectableTx])
 
@@ -183,14 +184,14 @@ export default function Bridge() {
 
   return (
     <Wrapper>
+      <Tabs
+        collectableTxAmount={collectableTxAmount}
+        isCollecting={isCollecting}
+        isCollectableFilter={isCollectableFilter}
+        handleResetBridge={handleResetBridge}
+        handleCollectTab={handleCollectTab}
+      />
       <AppBody>
-        <Tabs
-          collectableTxAmount={collectableTxAmount}
-          isCollecting={isCollecting}
-          isCollectableFilter={isCollectableFilter}
-          handleResetBridge={handleResetBridge}
-          handleCollectTab={handleCollectTab}
-        />
         <RowBetween mb="12px">
           <Title>{isCollecting ? 'Collect' : 'Swapr Bridge'}</Title>
         </RowBetween>
@@ -199,15 +200,16 @@ export default function Bridge() {
             <AssetSelector
               label="from"
               selectedNetwork={getNetworkOptionById(fromNetwork.chainId, fromOptions)}
-              onClick={() => setShowFromList(val => !val)}
-              disabled={isCollecting}
+              onClick={SHOW_TESTNETS ? () => setShowFromList(val => !val) : () => null}
+              disabled={SHOW_TESTNETS ? isCollecting : true}
             />
             <NetworkSwitcherPopover
-              show={showFromList}
-              onOuterClick={() => setShowFromList(false)}
               options={fromOptions}
               showWalletConnector={false}
               parentRef={fromPanelRef}
+              show={SHOW_TESTNETS ? showFromList : false}
+              onOuterClick={SHOW_TESTNETS ? () => setShowFromList(false) : () => null}
+              placement="bottom"
             />
           </div>
           <SwapButton onClick={onSwapBridgeNetworks} disabled={isCollecting}>
@@ -217,15 +219,16 @@ export default function Bridge() {
             <AssetSelector
               label="to"
               selectedNetwork={getNetworkOptionById(toNetwork.chainId, toOptions)}
-              onClick={() => setShowToList(val => !val)}
-              disabled={isCollecting}
+              onClick={SHOW_TESTNETS ? () => setShowToList(val => !val) : () => null}
+              disabled={SHOW_TESTNETS ? isCollecting : true}
             />
             <NetworkSwitcherPopover
-              show={showToList}
-              onOuterClick={() => setShowToList(false)}
               options={toOptions}
               showWalletConnector={false}
               parentRef={toPanelRef}
+              show={SHOW_TESTNETS ? showToList : false}
+              onOuterClick={SHOW_TESTNETS ? () => setShowToList(false) : () => null}
+              placement="bottom"
             />
           </div>
         </Row>
@@ -250,7 +253,6 @@ export default function Bridge() {
           isNetworkConnected={isNetworkConnected}
           step={step}
           setStep={setStep}
-          typedValue={typedValue}
         />
       </AppBody>
       {step !== BridgeStep.Collect && bridgeService && !!bridgeSummaries.length && (
