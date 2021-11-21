@@ -6,10 +6,10 @@ import { utils } from 'ethers'
 // Contracts
 import { getContracts } from './contracts'
 // Constants
-import { BTC_COINS, ChainId, COINS_MAINNET, ETH_COINS, LINK_COINS, MainnetCoinList } from './constants'
+import { ChainId, COINS_MAINNET, MainnetCoinList } from './constants'
 // Curve Router ABI
 import REGISTRY_EXCHANGE_ABI from './abi/registry_exchange.json'
-import { toBN, toLowerCase, getSmallAmountForCoin } from './utils'
+import { toBN, getSmallAmountForCoin } from './utils'
 
 /**
  * A CurveFi currency

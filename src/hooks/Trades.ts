@@ -1,15 +1,22 @@
 import { Currency, CurrencyAmount, Pair, RoutablePlatform, Token, Trade } from '@swapr/sdk'
 import flatMap from 'lodash.flatmap'
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 
 import { BASES_TO_CHECK_TRADES_AGAINST } from '../constants'
 import { PairState, usePairs } from '../data/Reserves'
+import { getCrossAssetExchangeInfo, getCoinList, supportsChain } from '../lib/eco-router/curve'
 import { useIsMultihop } from '../state/user/hooks'
 import { sortTradesByExecutionPrice } from '../utils/prices'
 import { wrappedCurrency } from '../utils/wrappedCurrency'
-
 import { useActiveWeb3React } from './index'
 
+/**
+ * Finds and returns list of all pairs allowed to trade on target platform
+ * @param currencyA Coin to sell
+ * @param currencyB Coin to buy
+ * @param platform Supported routable Platform
+ * @returns list of pairs
+ */
 function useAllCommonPairs(
   currencyA?: Currency,
   currencyB?: Currency,
@@ -95,6 +102,41 @@ export function useTradeExactIn(
 }
 
 /**
+ * Returns the best trade for the exact amount of tokens in to the given token out
+ */
+export function useTradeExactInCurve(currencyAmountIn?: CurrencyAmount, currencyOut?: Currency): Trade | undefined {
+  // const [trade, setTrade] = useState<Trade>()
+  const { chainId, library } = useActiveWeb3React()
+
+  useEffect(() => {
+    const allPairs = getCoinList(chainId)
+
+    if (!allPairs) {
+      return
+    }
+
+    if (library && currencyAmountIn && currencyOut && chainId && supportsChain(chainId)) {
+      getCrossAssetExchangeInfo({
+        amountIn: currencyAmountIn.toExact(),
+        currencyIn: currencyAmountIn.currency.symbol as string,
+        currencyOut: currencyOut.symbol as string,
+        provider: library
+      })
+        .then(res => {
+          console.log(res)
+        })
+        .catch(console.log)
+    }
+
+    return () => {
+      console.log('cleared')
+    }
+  }, [currencyAmountIn, currencyOut, chainId, library])
+
+  return undefined
+}
+
+/**
  * Returns the best trade for the token in to the exact amount of token out
  */
 export function useTradeExactOut(
@@ -133,8 +175,10 @@ export function useTradeExactInAllPlatforms(
     useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.SUSHISWAP),
     useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.HONEYSWAP),
     useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.BAOSWAP),
-    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.LEVINSWAP)
+    useTradeExactIn(currencyAmountIn, currencyOut, RoutablePlatform.LEVINSWAP),
+    useTradeExactInCurve(currencyAmountIn, currencyOut)
   ]
+
   return sortTradesByExecutionPrice(bestTrades).filter(trade => !!trade)
 }
 

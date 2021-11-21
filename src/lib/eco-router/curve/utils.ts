@@ -4,6 +4,7 @@ import { BTC_COINS, ETH_COINS, LINK_COINS } from './constants'
 
 export const toBN = (n: BigNumber, decimals = 18): BigNumber => {
   return BigNumber.from(utils.formatUnits(n, decimals)).mul(decimals)
+  return BigNumber.from(utils.formatUnits(n, decimals))
 }
 
 export const toLowerCase = (str: string) => str.toLocaleLowerCase()
