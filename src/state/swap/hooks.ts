@@ -211,7 +211,9 @@ export function useDerivedSwapInfo(
     currencies,
     currencyBalances,
     parsedAmount,
+    // @ts-ignore
     trade,
+    // @ts-ignore
     allPlatformTrades,
     inputError
   }

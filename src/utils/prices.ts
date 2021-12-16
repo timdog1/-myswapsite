@@ -84,7 +84,9 @@ export function computeSlippageAdjustedAmounts(
 ): { [field in Field]?: CurrencyAmount } {
   const pct = basisPointsToPercent(allowedSlippage)
   return {
+    // @ts-ignore
     [Field.INPUT]: trade?.maximumAmountIn(pct),
+    // @ts-ignore
     [Field.OUTPUT]: trade?.minimumAmountOut(pct)
   }
 }
