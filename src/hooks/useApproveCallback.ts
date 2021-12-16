@@ -1,6 +1,6 @@
 import { MaxUint256 } from '@ethersproject/constants'
 import { TransactionResponse } from '@ethersproject/providers'
-import { Trade, TokenAmount, CurrencyAmount, ChainId } from '@swapr/sdk'
+import { Trade, TokenAmount, CurrencyAmount, ChainId, UniswapV2Trade, UniswapV2RoutablePlatform } from '@swapr/sdk'
 import { useCallback, useMemo } from 'react'
 import { useTokenAllowance } from '../data/Allowances'
 import { Field } from '../state/swap/actions'
@@ -99,11 +99,23 @@ export function useApproveCallback(
 }
 
 // wraps useApproveCallback in the context of a swap
-export function useApproveCallbackFromTrade(trade?: Trade, allowedSlippage = 0) {
+export function useApproveCallbackFromTrade(trade?: UniswapV2Trade | Trade, allowedSlippage = 0) {
   const { chainId } = useActiveWeb3React()
   const amountToApprove = useMemo(
-    () => (trade ? computeSlippageAdjustedAmounts(trade, allowedSlippage)[Field.INPUT] : undefined),
+    () => (trade ? computeSlippageAdjustedAmounts(trade as UniswapV2Trade, allowedSlippage)[Field.INPUT] : undefined),
     [trade, allowedSlippage]
   )
-  return useApproveCallback(amountToApprove, trade?.platform.routerAddress[chainId || ChainId.MAINNET])
+
+  // Grab router
+  // @ts-ignore
+
+  const tradePlatformRouterAddress =
+    trade instanceof UniswapV2Trade && (trade.platform as UniswapV2RoutablePlatform).routerAddress
+
+  console.log({ trade, platformName: trade?.platform.name, tradePlatformRouterAddress })
+
+  return useApproveCallback(
+    amountToApprove,
+    (tradePlatformRouterAddress && tradePlatformRouterAddress[chainId || ChainId.MAINNET]) || undefined
+  )
 }

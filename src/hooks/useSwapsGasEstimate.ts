@@ -1,4 +1,4 @@
-import { ChainId, Token, Trade } from '@swapr/sdk'
+import { ChainId, Token, Trade, UniswapV2Trade } from '@swapr/sdk'
 import { BigNumber } from 'ethers'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useActiveWeb3React } from '.'
@@ -22,7 +22,7 @@ export function useSwapsGasEstimations(
   trades?: (Trade | undefined)[]
 ): { loading: boolean; estimations: (BigNumber | null)[][] } {
   const { account, library, chainId } = useActiveWeb3React()
-  const platformSwapCalls = useSwapsCallArguments(trades, allowedSlippage, recipientAddressOrName)
+  const platformSwapCalls = useSwapsCallArguments(trades as UniswapV2Trade[], allowedSlippage, recipientAddressOrName)
   const mainnetGasPrices = useMainnetGasPrices()
   const [preferredGasPrice] = useUserPreferredGasPrice()
 
@@ -42,7 +42,10 @@ export function useSwapsGasEstimations(
   )
   const routerAddresses = useMemo(() => {
     if (!trades) return undefined
-    const rawRouterAddresses = trades.map(trade => trade?.platform?.routerAddress[chainId || ChainId.MAINNET])
+    const rawRouterAddresses = trades.map(trade => {
+      // @ts-ignore
+      return trade?.platform?.routerAddress[chainId || ChainId.MAINNET]
+    })
     if (rawRouterAddresses.some(address => !address)) return undefined
     return rawRouterAddresses as string[]
   }, [chainId, trades])

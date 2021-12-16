@@ -1,15 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
-import {
-  ChainId,
-  JSBI,
-  Percent,
-  RoutablePlatform,
-  UniswapV2Trade,
-  Trade,
-  TradeType,
-  UniswapV2RoutablePlatform
-} from '@swapr/sdk'
+import { ChainId, JSBI, Percent, UniswapV2Trade, TradeType, UniswapV2RoutablePlatform } from '@swapr/sdk'
 import { useMemo } from 'react'
 import { BIPS_BASE, INITIAL_ALLOWED_SLIPPAGE } from '../constants'
 import { useTransactionAdder } from '../state/transactions/hooks'

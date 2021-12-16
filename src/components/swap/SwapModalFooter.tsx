@@ -1,4 +1,4 @@
-import { Trade, TradeType } from '@swapr/sdk'
+import { UniswapV2Trade, TradeType } from '@swapr/sdk'
 import React, { useMemo, useState } from 'react'
 import { Repeat } from 'react-feather'
 import { Text } from 'rebass'
@@ -24,7 +24,7 @@ export default function SwapModalFooter({
   swapErrorMessage,
   disabledConfirm
 }: {
-  trade: Trade
+  trade: UniswapV2Trade
   allowedSlippage: number
   onConfirm: () => void
   swapErrorMessage: string | undefined

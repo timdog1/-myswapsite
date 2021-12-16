@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
-import { ChainId, RoutablePlatform, Trade } from '@swapr/sdk'
+import { ChainId, RoutablePlatform, UniswapV2Trade } from '@swapr/sdk'
 import { useLastTruthy } from '../../hooks/useLast'
 import { AdvancedSwapDetails } from './AdvancedSwapDetails'
 import { SwapPlatformSelector } from './SwapPlatformSelector'
@@ -72,8 +72,8 @@ const SettingsWrapper = styled(Box)`
 `
 
 interface AdvancedSwapDetailsDropdownProps {
-  trade?: Trade
-  allPlatformTrades?: (Trade | undefined)[] | undefined
+  trade?: UniswapV2Trade
+  allPlatformTrades?: (UniswapV2Trade | undefined)[] | undefined
   onSelectedPlatformChange: (newPlatform: RoutablePlatform) => void
 }
 

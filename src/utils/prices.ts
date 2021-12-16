@@ -10,7 +10,8 @@ import {
   Currency,
   _10000,
   _100,
-  UniswapV2Trade
+  UniswapV2Trade,
+  Trade
 } from '@swapr/sdk'
 import { ALLOWED_PRICE_IMPACT_HIGH, ALLOWED_PRICE_IMPACT_LOW, ALLOWED_PRICE_IMPACT_MEDIUM } from '../constants'
 import { Field } from '../state/swap/actions'
@@ -22,19 +23,20 @@ const ONE_HUNDRED_PERCENT = new Percent(_10000, _10000)
 
 // computes price breakdown for the trade
 export function computeTradePriceBreakdown(
-  trade?: UniswapV2Trade
+  trade?: UniswapV2Trade | Trade
 ): { priceImpactWithoutFee?: Percent; realizedLPFee?: Percent; realizedLPFeeAmount?: CurrencyAmount } {
   // for each hop in our trade, take away the x*y=k price impact from 0.3% fees
   // e.g. for 3 tokens/2 hops: 1 - ((1 - .03) * (1-.03))
-  const realizedLPFee = !trade
-    ? undefined
-    : ONE_HUNDRED_PERCENT.subtract(
-        trade.route.pairs.reduce<Fraction>((currentFee: Fraction, currentIndex: Pair): Fraction => {
-          return currentFee.multiply(
-            ONE_HUNDRED_PERCENT.subtract(new Percent(JSBI.BigInt(currentIndex.swapFee.toString()), _10000))
-          )
-        }, ONE_HUNDRED_PERCENT)
-      )
+  const realizedLPFee =
+    !trade || !(trade instanceof UniswapV2Trade)
+      ? undefined
+      : ONE_HUNDRED_PERCENT.subtract(
+          trade.route.pairs.reduce<Fraction>((currentFee: Fraction, currentIndex: Pair): Fraction => {
+            return currentFee.multiply(
+              ONE_HUNDRED_PERCENT.subtract(new Percent(JSBI.BigInt(currentIndex.swapFee.toString()), _10000))
+            )
+          }, ONE_HUNDRED_PERCENT)
+        )
 
   // remove lp fees from price impact
   const priceImpactWithoutFeeFraction = trade && realizedLPFee ? trade.priceImpact.subtract(realizedLPFee) : undefined
