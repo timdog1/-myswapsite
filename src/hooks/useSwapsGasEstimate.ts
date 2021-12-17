@@ -91,7 +91,13 @@ export function useSwapsGasEstimations(
   const recipient = recipientAddress || account
 
   const updateEstimations = useCallback(async () => {
-    if (!routerAllowances || !trades || !typedIndependentCurrencyAmount || routerAllowances.length !== trades.length)
+    if (
+      !routerAllowances ||
+      !trades ||
+      !library ||
+      !typedIndependentCurrencyAmount ||
+      routerAllowances.length !== trades.length
+    )
       return
     setLoading(true)
     const estimatedCalls = []
@@ -105,15 +111,11 @@ export function useSwapsGasEstimations(
         specificCalls = platformCalls.map(() => null)
       } else {
         for (const call of platformCalls) {
-          const {
-            parameters: { methodName, args, value },
-            contract
-          } = call
-          const options = !value || isZero(value) ? {} : { value }
-
+          const { parameters } = call
+          // const options = !value || isZero(value) ? {} : { value }
           let estimatedCall = null
           try {
-            estimatedCall = calculateGasMargin(await contract.estimateGas[methodName](...args, { ...options }))
+            estimatedCall = calculateGasMargin(await library.estimateGas(parameters as any))
           } catch (error) {
             console.error(error)
             // silent fail
@@ -126,7 +128,7 @@ export function useSwapsGasEstimations(
     }
     setEstimations(estimatedCalls)
     setLoading(false)
-  }, [platformSwapCalls, routerAllowances, trades, typedIndependentCurrencyAmount])
+  }, [platformSwapCalls, library, routerAllowances, trades, typedIndependentCurrencyAmount])
 
   useEffect(() => {
     if (!trades || trades.length === 0 || !library || !chainId || !recipient || !account || !calculateGasFees) {
