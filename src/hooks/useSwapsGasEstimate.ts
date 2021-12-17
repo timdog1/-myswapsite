@@ -1,4 +1,4 @@
-import { ChainId, Token, Trade, UniswapV2Trade } from '@swapr/sdk'
+import { ChainId, Token, Trade, UniswapV2RoutablePlatform, UniswapV2Trade } from '@swapr/sdk'
 import { BigNumber } from 'ethers'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useActiveWeb3React } from '.'
@@ -43,8 +43,10 @@ export function useSwapsGasEstimations(
   const routerAddresses = useMemo(() => {
     if (!trades) return undefined
     const rawRouterAddresses = trades.map(trade => {
-      // @ts-ignore
-      return trade?.platform?.routerAddress[chainId || ChainId.MAINNET]
+      const tradePlatformRouterAddress =
+        trade instanceof UniswapV2Trade && (trade.platform as UniswapV2RoutablePlatform).routerAddress
+
+      return (tradePlatformRouterAddress && tradePlatformRouterAddress[chainId || ChainId.MAINNET]) || undefined
     })
     if (rawRouterAddresses.some(address => !address)) return undefined
     return rawRouterAddresses as string[]

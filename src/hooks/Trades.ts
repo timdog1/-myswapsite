@@ -94,7 +94,7 @@ export function useTradeExactIn(
         }
       )
 
-      console.log(bestTrades)
+      // console.log(bestTrades)
       return bestTrades ?? undefined
     }
     return undefined
@@ -142,10 +142,6 @@ export function useTradeExactInAllPlatforms(
     useTradeExactIn(currencyAmountIn, currencyOut, UniswapV2RoutablePlatform.BAOSWAP),
     useTradeExactIn(currencyAmountIn, currencyOut, UniswapV2RoutablePlatform.LEVINSWAP)
   ]
-
-  console.log({
-    bestTrades
-  })
 
   return sortTradesByExecutionPrice(bestTrades).filter(trade => !!trade)
 }

@@ -74,9 +74,6 @@ export function useSwapsCallArguments(
       )
 
       if (trade.tradeType === TradeType.EXACT_INPUT) {
-        console.log({
-          allowedSlippage: new Percent(JSBI.BigInt(allowedSlippage), BIPS_BASE)
-        })
         // swapMethods.push(
         //   Router.swapCallParameters(trade, {
         //     feeOnTransfer: true,

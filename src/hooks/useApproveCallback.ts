@@ -107,12 +107,8 @@ export function useApproveCallbackFromTrade(trade?: UniswapV2Trade | Trade, allo
   )
 
   // Grab router
-  // @ts-ignore
-
   const tradePlatformRouterAddress =
     trade instanceof UniswapV2Trade && (trade.platform as UniswapV2RoutablePlatform).routerAddress
-
-  console.log({ trade, platformName: trade?.platform.name, tradePlatformRouterAddress })
 
   return useApproveCallback(
     amountToApprove,

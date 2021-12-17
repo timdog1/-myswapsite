@@ -138,8 +138,10 @@ export function getRouterContract(
   account?: string
 ): Contract {
   return getContract(
-    // @ts-ignore
-    platform.routerAddress[chainId ? chainId : ChainId.MAINNET] as string,
+    /**
+     * @todo Refactor when CurveFinance is implemented
+     */
+    (platform as UniswapV2RoutablePlatform).routerAddress[chainId ? chainId : ChainId.MAINNET] as string,
     IDXswapRouterABI,
     library,
     account
