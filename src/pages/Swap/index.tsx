@@ -19,7 +19,6 @@ import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
 import { useSwapCallback } from '../../hooks/useSwapCallback'
 import useWrapCallback, { WrapType } from '../../hooks/useWrapCallback'
-import { useModalOpen, useWalletSwitcherPopoverToggle } from '../../state/application/hooks'
 import { Field, setRecipient } from '../../state/swap/actions'
 import {
   useDefaultsFromURLSearch,
@@ -54,6 +53,7 @@ import CommunityLinks from './../../components/LandingPageComponents/CommunityLi
 import BlogNavigation from './../../components/LandingPageComponents/BlogNavigation'
 import Hero from './../../components/LandingPageComponents/layout/Hero'
 import Footer from './../../components/LandingPageComponents/layout/Footer'
+import { ButtonConnect } from '../../components/ButtonConnect'
 
 const SwitchIconContainer = styled.div`
   height: 0;
@@ -107,9 +107,6 @@ export default function Swap() {
   }, [])
 
   const { account, chainId } = useActiveWeb3React()
-
-  // toggle wallet when disconnected
-  const toggleWalletSwitcherPopover = useWalletSwitcherPopoverToggle()
 
   // for expert mode
   const [isExpertMode] = useExpertModeManager()
@@ -283,8 +280,6 @@ export default function Swap() {
     [onCurrencySelection]
   )
 
-  const networkSwitcherPopoverOpen = useModalOpen(ApplicationModal.NETWORK_SWITCHER)
-
   const fiatValueInput = useUSDValue(parsedAmounts[Field.INPUT], trade)
   const fiatValueOutput = useUSDValue(parsedAmounts[Field.OUTPUT], trade)
   const priceImpact = useMemo(() => computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput), [
@@ -392,9 +387,7 @@ export default function Swap() {
                 {isExpertMode && !showWrap && <RecipientField recipient={recipient} action={setRecipient} />}
                 <div>
                   {!account ? (
-                    <ButtonPrimary onClick={toggleWalletSwitcherPopover} disabled={networkSwitcherPopoverOpen}>
-                      {networkSwitcherPopoverOpen ? 'Switch network' : 'Connect wallet'}
-                    </ButtonPrimary>
+                    <ButtonConnect />
                   ) : showWrap ? (
                     <ButtonPrimary disabled={Boolean(wrapInputError)} onClick={onWrap}>
                       {wrapInputError ??
